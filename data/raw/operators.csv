@@ -1,0 +1,29 @@
+operator_id,name,service_type,contact_number,rating,unverified_fields
+OP002,Gokarneshwor Yatayat,Private Bus Syndicate / Cooperative,,3.5,rating
+OP003,Bhaktapur Minibus Samiti,Private Bus Syndicate / Cooperative,,3.5,rating
+OP004,Chandragiri Yatayat,Private Bus Syndicate / Cooperative,,3.5,rating
+OP005,Madhya Upatyaka Bus Samiti,Private Bus Syndicate / Cooperative,,3.5,rating
+OP006,Mayur Yatayat,Private Bus Syndicate / Cooperative,,3.5,rating
+OP007,Nepal Yatayat,Private Bus Syndicate / Cooperative,,3.5,rating
+OP008,Sajha Yatayat,Public Cooperative,+977-1-4XXXXXX,4.2,"rating,contact_number"
+OP009,Lalitpur Microbus Sewa Samiti,Private Bus Syndicate / Cooperative,,3.5,rating
+OP010,Balaju Microbus and Tempo Samiti,Private Bus Syndicate / Cooperative,,3.5,rating
+OP011,Digo Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP012,Dhumrabaraha Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP013,Basuki Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP014,Bagmati Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP015,Juneli Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP016,Mahanagar Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP017,Panchpokhari Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP018,Riddhi Siddhi Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP019,Tarakeshwor Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP020,Samyukta Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP021,Samakhusi Yatayat,Private Bus Syndicate / Cooperative,,3.8,rating
+OP023,Om Janata Yatayat,Private Bus Syndicate / Cooperative,,,rating
+OP022,Bishalnagar Micro Bus,Private Bus Syndicate / Cooperative,,,rating
+OP024,Araniko Yatayat,Private Bus Syndicate / Cooperative,,,"service_type,rating,contact_number"
+OP027,Madhyapur Thimi Yatayat,Private Bus Syndicate / Cooperative,,,"service_type,rating,contact_number"
+OP028,Lagankhel Chapagaun Bus Sewa,Private Bus Syndicate / Cooperative,,,"service_type,rating,contact_number"
+OP029,Lubhu Bus Sewa Samiti,Private Bus Syndicate / Cooperative,,,"service_type,rating,contact_number"
+OP025,Dakshinkali Yatayat,Private Bus Syndicate / Cooperative,,,"service_type,rating,contact_number"
+OP026,Kirtipur Yatayat,Private Bus Syndicate / Cooperative,,,"service_type,rating,contact_number"

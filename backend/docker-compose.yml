@@ -1,0 +1,34 @@
+# NOTE: your repo root already has a docker-compose.yml (per your earlier
+# project structure). If it already defines a `db` service, merge this into
+# it instead of overwriting — this file exists so you have a known-working
+# reference that matches exactly what data/schema.sql was tested against.
+#
+# Place this at the repo root (sibling to backend/ and data/), then:
+#   docker compose up -d db
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: ktm_bus_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ktm_bus
+      POSTGRES_PASSWORD: ktm_bus
+      POSTGRES_DB: ktm_bus
+    ports:
+      - "5432:5432"
+    volumes:
+      - ktm_bus_pgdata:/var/lib/postgresql/data
+      # Anything in db_init/ runs automatically, alphabetically, but only
+      # the FIRST time the container starts against an empty data volume.
+      # If you need to re-run schema.sql later, drop the volume first:
+      #   docker compose down -v
+      - ./backend/db_init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ktm_bus"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ktm_bus_pgdata:

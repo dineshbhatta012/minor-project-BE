@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "leaflet/dist/leaflet.css";
+
+html,
+body {
+  height: 100%;
+  background-color: #0f1418;
+  color: #e8ecef;
+}
+
+/* Leaflet's default marker icon paths break with bundlers; components/BusMap.tsx
+   fixes this by pointing at CDN-hosted icon images directly. */

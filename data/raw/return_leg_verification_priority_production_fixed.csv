@@ -1,0 +1,93 @@
+route_id,route_name,vehicle_type,operator,total_stops,approx_distance_km,status
+R2988993,Ratnapark - Dhulikhel,bus,Mayur Yatayat,44,34.94,active
+R2988891,Panauti - Ratnapark,bus,,43,36.82,active
+R2988983,Chyamasingh to Ratnapark,bus,Madhya Upatyaka Bus Samiti,42,20.46,active
+R2989052,Ratna Park - Chyamasingh,bus,Madhya Upatyaka Bus Samiti,41,21.21,active
+R3014451,Bhaktapur-Purano Thimi- Purano Bus Park,bus,Bhaktapur Minibus Samiti,41,32.69,active
+R2988890,Bagbazaar-Kamalbinayak,bus,Bhaktapur Minibus Samiti,38,18.62,active
+R2909799,Kamalbinayak-Ratnapark,bus,Bhaktapur Minibus Samiti,38,18.3,active
+R2988893,Ratnapark-Changu,bus,Bhaktapur Minibus Samiti,37,23.18,active
+R2989027,Changu-Ratnapark,bus,Bhaktapur Minibus Samiti,37,22.85,active
+R2988806,Ratnapark-Dadhikot,bus,,35,19.03,active
+R3102605,Swyambhu-Chakrapath parikrama,bus,Mahanagar Yatayat,36,25.38,active
+R2301263,Chakrapath Parikrama,bus,Mahanagar Yatayat,35,29.32,active
+R2301306,Balkumari-Gopi Krishna,bus,Nepal Yatayat,33,15.4,active
+R3071562,"Naya Baneshwor, Koteshwor, Satdobato, Lagankhel, Jaulakhel, Kupandol, Naya Baneshwor",tempo,,33,14.72,active
+R2975649,Purano Buspark - Chabahil,bus,,30,14.19,active
+R2302674,Naikap-Koteshwor,bus,Digo Yatayat,29,15.82,active
+R2988809,Purano Bus Park - Sakhu,bus,Panchpokhari Yatayat,31,24.0,active
+R3020244,Attrekhle-Purano Buspark,bus,Juneli Yatayat,28,15.87,active
+R2276770,Purano Bus Park-Thimi,microbus,,25,11.91,active
+R2989036,Purano Bus Park - jorpati,bus,Gokarneshwor Yatayat,27,13.89,active
+R3070344,Kausaltar-Naikap,bus,Chandragiri Yatayat,25,15.4,active
+R2295974,Purano Bus Park-Nakhipot,microbus,,23,16.49,active
+R-SAJHA-02,Lagankhel-Budhanilkantha,bus,Sajha Yatayat,23,25.36,active
+R2294152,Ratna Park-Lagankhel,microbus,Bagmati Yatayat,21,5.92,active
+R-SAJHA-04,Lamatar-Ratnapark,bus,Sajha Yatayat,21,20.62,active
+R-SAJHA-05,Thankot-Tribhuvan International Airport,bus,Sajha Yatayat,21,25.03,active
+R3213434,Kalanki - Koteshwor,bus,Mahanagar Yatayat,21,23.99,active
+R2294107,Ratna Park-Gwarko,tempo,Bagmati Yatayat,19,5.94,active
+R-SAJHA-06,Thankot-Budhanilkantha,bus,Sajha Yatayat,20,36.83,active
+R-SAJHA-01,Lagankhel-Gongabu Buspark,bus,Sajha Yatayat,19,16.27,active
+R-SAJHA-07,Lele-Jamal,bus,Sajha Yatayat,18,19.69,active
+R2282031,Ratna Park - Kirtipur,bus;microbus,Samyukta Yatayat,16,8.16,active
+R3020231,Ratna Park - Panga Dobato- Nagaun- Bhatkepati,bus;microbus,Samyukta Yatayat,16,10.04,active
+R-SAJHA-03,Godawari-Ratnapark,bus,Sajha Yatayat,17,15.47,active
+R3229256,Jorpati - Naikap,bus,,17,16.31,active
+R2295768,Ratnapark-Mangal Bazaar,tempo,Bagmati Yatayat,15,4.77,active
+R2295902,KattyaniChowk-Sundhara,tempo,Samakhusi Yatayat,16,4.56,active
+R3020213,Ratna Park - Panga Dobato- Dhokashi,bus;microbus,Samyukta Yatayat,15,7.72,active
+R3232098,Narayangopal Chowk - Satdobato,bus,,16,12.24,active
+R2295941,Old Baneshwar-Sundhara,tempo,Samakhusi Yatayat,15,3.92,active
+R3277397,Bhaktapur - Gongabu,bus,,15,22.41,active
+R3102124,RNAC-Bishalnagar-Chapal_Karkhana-Mandikhatar,microbus,Dhumrabaraha Yatayat;Bishalnagar Micro Bus,14,6.73,active
+R3236048,Koteshwor - New Bus Park,microbus,,14,16.31,active
+R3218289,Jorpati - Ekantakuna,microbus,,14,14.87,active
+R3211395,Bhaktapur - Ratna Park,bus,,14,16.77,active
+R-SAJHA-08,Bungamati-Jamal,bus,Sajha Yatayat,13,12.28,active
+R3214592,Koteshwor - Kalanki (via New Baneshwor),microbus,,13,9.4,active
+R3255302,Suryabinayak - Kirtipur,bus,,13,21.47,active
+R3203278,Airport - Ratna Park,microbus,,12,9.82,active
+R3271482,Lagankhel - Koteshwor,microbus,,12,8.32,active
+R3204165,Thimi - Ratna Park,microbus,,12,14.65,active
+R3283810,Ratna Park - Naikap,microbus,,11,10.18,active
+R3296530,Koteshwor - Kalanki (via Satdobato),bus,Mahanagar Yatayat,11,15.27,active
+R3351750,Narayantar - Jorpati Central Line,bus,,9,8.03,active
+R3297196,New Bus Park - Ratna Park,microbus,,8,6.24,active
+R3288696,Lagankhel - Ratna Park,microbus,,8,5.95,active
+R3342445,Baluwatar - Naxal - Putalisadak Loop,microbus,,8,5.95,active
+R3319772,Thamel - Sorhakhutte Feeder,microbus,,8,3.64,active
+R3297080,Lagankhel - Balkhu,microbus,,7,6.29,active
+R2301161,MAV School-Purano Buspark,microbus,,26,10.1,pending_release
+R3072924,Matathirtha-Naikap-Thapathali-KrishnaPauroti-Ratopul-Chabahil-kapan,bus,Om Janata Yatayat;Chandragiri Yatayat,24,16.07,pending_release
+R3070262,Kalanki-Pepsacola,bus,Riddhi Siddhi Yatayat,22,13.34,pending_release
+R3070257,kalanki-Balkumari,bus,Digo Yatayat,21,12.02,pending_release
+R3071402,Gokarna-Chabahil-Naya_Bus_Park-Balaju-kalanki,bus,Gokarneshwor Yatayat,22,17.26,pending_release
+R2301205,Purano Bus Park-Shivapuri,microbus,Basuki Yatayat,21,12.47,pending_release
+R2282101,Ratna Park - Sundarijal,bus,Gokarneshwor Yatayat,20,13.45,pending_release
+R2295942,Sundhara-Purano Baneshwar,tempo,Samakhusi Yatayat,20,5.27,pending_release
+R2988810,Purano Bus Park- Budhanilkantha,bus,Dhumrabaraha Yatayat,20,10.68,pending_release
+R2276999,Shobhabhagwati-Koteshwore,tempo,Digo Yatayat,19,10.33,pending_release
+R2295903,Sundhara-Milanchowk-KattyaniChowk,tempo,Samakhusi Yatayat,19,5.29,pending_release
+R2295986,Sundhara-Shankhamul,microbus,Samakhusi Yatayat,17,5.58,pending_release
+R3020174,Gothatar-Purano Buspark,bus,Juneli Yatayat,19,13.77,pending_release
+R2301206,Shivapuri-Purano Bus Park,microbus,Basuki Yatayat,17,11.56,pending_release
+R2301358,Teaching-NayaBaneshwar,microbus,Tarakeshwor Yatayat,17,12.94,pending_release
+R2323381,Budhanilkantha School- Ratna Park,microbus,Dhumrabaraha Yatayat,17,10.09,pending_release
+R2295734,Ratna Park-Budhanilkantha School,microbus,Dhumrabaraha Yatayat,16,9.73,pending_release
+R2277212,Koteshwor - Ratna Park,tempo,Digo Yatayat,15,8.88,pending_release
+R2989012,Ratna Park - Daksinkali,bus,,13,13.3,pending_release
+R2989074,Sakhu - Purano Bus Park,bus,Panchpokhari Yatayat,17,15.89,pending_release
+R3020212,Dhokashi- Chobar gate- Ratnapark,bus;microbus,Samyukta Yatayat,13,8.45,pending_release
+R2301357,Naya Baneshwor-Teaching,microbus,Tarakeshwor Yatayat,13,5.22,pending_release
+R2989075,Jorpati - Purano Bus Park,bus,Gokarneshwor Yatayat,13,8.63,pending_release
+R3074202,kapan-Chabahil-Mitidevi-Ratnapark,microbus,Nepal Yatayat,13,7.49,pending_release
+R2988835,Ratna Park - Thankot,microbus,Chandragiri Yatayat,11,10.79,pending_release
+R2988836,Thankot - Ratna Park,microbus,Chandragiri Yatayat,11,13.43,pending_release
+R2307657,Lubhu - Lagankhel,bus,,11,5.62,pending_release
+R3028077,Balaju-Ratnapark,microbus;tempo,Balaju Microbus and Tempo Samiti,10,4.07,pending_release
+R3101629,Lagankhel-Satdobato-Khumaltar-Dhapakhel,microbus,Lalitpur Microbus Sewa Samiti,8,6.37,pending_release
+R3102319,Lagankhel-Tika Bhairab,bus,Bagmati Yatayat,8,12.49,pending_release
+R2989021,Lagankhel-Chapagaun,bus,,7,10.87,pending_release
+R3102120,Lagankhel-Lamatar,bus,Bagmati Yatayat,5,8.59,pending_release
+R2988930,Kamal Binayak-Nagarkot,bus,Bhaktapur Minibus Samiti,2,9.29,pending_release
