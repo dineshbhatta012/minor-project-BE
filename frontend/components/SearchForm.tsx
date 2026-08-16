@@ -1,18 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import { Stop } from "@/types/route";
 
 interface SearchFormProps {
   stops: Stop[];
+  originName: string;
+  setOriginName: (name: string) => void;
+  destinationName: string;
+  setDestinationName: (name: string) => void;
   onSearch: (originStopId: string, destinationStopId: string) => void;
   loading?: boolean;
   disabled?: boolean;
 }
 
-export default function SearchForm({ stops, onSearch, loading, disabled }: SearchFormProps) {
-  const [originName, setOriginName] = useState("");
-  const [destinationName, setDestinationName] = useState("");
+export default function SearchForm({
+  stops,
+  originName,
+  setOriginName,
+  destinationName,
+  setDestinationName,
+  onSearch,
+  loading,
+  disabled,
+}: SearchFormProps) {
 
   function resolveStopId(name: string): string | null {
     const match = stops.find((s) => s.stop_name.toLowerCase() === name.trim().toLowerCase());

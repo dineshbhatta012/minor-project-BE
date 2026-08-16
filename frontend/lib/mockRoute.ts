@@ -3,11 +3,11 @@ import { RouteSearchResult, Stop } from "@/types/route";
 // A handful of fake Kathmandu Valley stops, roughly placed, for UI
 // development only. Swap for the real dataset once it lands.
 export const MOCK_STOPS: Stop[] = [
-  { id: "s1", name: "Ratna Park", lat: 27.7041, lng: 85.3145 },
-  { id: "s2", name: "Koteshwor", lat: 27.6789, lng: 85.3494 },
-  { id: "s3", name: "Kalanki", lat: 27.6939, lng: 85.28 },
-  { id: "s4", name: "Lagankhel", lat: 27.6667, lng: 85.3247 },
-  { id: "s5", name: "Balaju", lat: 27.7326, lng: 85.3038 },
+  { stop_id: "s1", stop_name: "Ratna Park", lat: 27.7041, lng: 85.3145, is_interchange: false, is_major_stop: true },
+  { stop_id: "s2", stop_name: "Koteshwor", lat: 27.6789, lng: 85.3494, is_interchange: true, is_major_stop: true },
+  { stop_id: "s3", stop_name: "Kalanki", lat: 27.6939, lng: 85.28, is_interchange: true, is_major_stop: true },
+  { stop_id: "s4", stop_name: "Lagankhel", lat: 27.6667, lng: 85.3247, is_interchange: true, is_major_stop: true },
+  { stop_id: "s5", stop_name: "Balaju", lat: 27.7326, lng: 85.3038, is_interchange: false, is_major_stop: true },
 ];
 
 export function getMockStops(): Stop[] {

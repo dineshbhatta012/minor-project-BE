@@ -14,6 +14,9 @@ Postgres runs inside Docker here, but the CSVs live on the host).
 import sys
 from pathlib import Path
 
+# Add backend directory to sys.path to resolve 'app' imports when running directly as a script
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+
 import psycopg2
 
 from app.core.config import get_settings
@@ -82,6 +85,11 @@ def main():
     cur = conn.cursor()
 
     try:
+        # Clear existing data to allow re-running the load script safely
+        tables_to_truncate = ", ".join([table for table, _, _ in LOAD_PLAN])
+        print(f"Truncating tables to clear old data: {tables_to_truncate}")
+        cur.execute(f"TRUNCATE TABLE {tables_to_truncate} CASCADE;")
+
         for table, filename, columns in LOAD_PLAN:
             csv_path = DATA_DIR / filename
             if not csv_path.exists():

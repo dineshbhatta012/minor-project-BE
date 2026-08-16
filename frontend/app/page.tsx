@@ -33,9 +33,20 @@ export default function Home() {
   const [stopsLoading, setStopsLoading] = useState(true);
   const [stopsError, setStopsError] = useState<string | null>(null);
 
+  const [originName, setOriginName] = useState("");
+  const [destinationName, setDestinationName] = useState("");
+
   const [result, setResult] = useState<RouteSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function handleSelectStop(stop: Stop, type: "from" | "to") {
+    if (type === "from") {
+      setOriginName(stop.stop_name);
+    } else {
+      setDestinationName(stop.stop_name);
+    }
+  }
 
   useEffect(() => {
     fetchStops()
@@ -83,6 +94,10 @@ export default function Home() {
 
         <SearchForm
           stops={stops}
+          originName={originName}
+          setOriginName={setOriginName}
+          destinationName={destinationName}
+          setDestinationName={setDestinationName}
           onSearch={handleSearch}
           loading={loading}
           disabled={stopsLoading || !!stopsError}
@@ -119,7 +134,13 @@ export default function Home() {
       </aside>
 
       <div className="flex-1">
-        <BusMap result={result} />
+        <BusMap
+          result={result}
+          stops={stops}
+          originName={originName}
+          destinationName={destinationName}
+          onSelectStop={handleSelectStop}
+        />
       </div>
     </main>
   );

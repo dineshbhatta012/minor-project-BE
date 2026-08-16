@@ -9,7 +9,7 @@
 #Snapshots folder
 .snapshots/
 #Testing Output folder
-.output/
+.output/~
 #Extension App-file
 *.app
 #Rapid Application Development File

@@ -16,7 +16,7 @@ services:
       POSTGRES_PASSWORD: ktm_bus
       POSTGRES_DB: ktm_bus
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - ktm_bus_pgdata:/var/lib/postgresql/data
       # Anything in db_init/ runs automatically, alphabetically, but only
