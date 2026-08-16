@@ -19,7 +19,7 @@ const busIcon = new L.Icon({
 // Kathmandu Valley center, used as the default map view.
 const VALLEY_CENTER: [number, number] = [27.7041, 85.32];
 
-const LEG_COLORS = ["#3DDC97", "#F2A93B", "#5DA9E9", "#E06C75"];
+const LEG_COLORS = ["#059669", "#2563eb", "#dc2626", "#7c3aed"];
 
 interface BusMapProps {
   result?: RouteSearchResult | null;
@@ -126,9 +126,15 @@ export default function BusMap({
           <Marker position={[leg.to_stop.lat, leg.to_stop.lng]} icon={busIcon}>
             <Popup>{leg.to_stop.stop_name}</Popup>
           </Marker>
+          {/* Outline Polyline to make the route easily recognized */}
           <Polyline
             positions={leg.path}
-            pathOptions={{ color: LEG_COLORS[i % LEG_COLORS.length], weight: 5 }}
+            pathOptions={{ color: "#0f172a", weight: 12, opacity: 0.45 }}
+          />
+          {/* Main colored Polyline */}
+          <Polyline
+            positions={leg.path}
+            pathOptions={{ color: LEG_COLORS[i % LEG_COLORS.length], weight: 7 }}
           />
         </Fragment>
       ))}
