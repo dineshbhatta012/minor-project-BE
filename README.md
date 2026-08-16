@@ -4,7 +4,7 @@ An interactive transit route planning application for the Kathmandu Valley. This
 
 ---
 
-## 🛠 Prerequisites
+## Prerequisites
 
 Ensure you have the following installed on your system:
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (running, with WSL 2 integration if on Windows)
@@ -13,7 +13,7 @@ Ensure you have the following installed on your system:
 
 ---
 
-## 🚀 Setup & Execution
+##  Setup & Execution
 
 ### 1. Database Setup (Docker)
 
@@ -72,7 +72,7 @@ npm run dev
 
 ---
 
-## 🗺 Features
+##  Features
 
 - **Map Selection:** Select origin/destination bus stops directly by clicking markers on the interactive Leaflet map ("Set as From" / "Set as To").
 - **Smart Pathfinding:** Uses an in-memory Dijkstra graph model with configurable transfer penalties to discourage excessive bus transfers.
