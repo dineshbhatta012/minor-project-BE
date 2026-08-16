@@ -35,6 +35,7 @@ export default function Home() {
 
   const [originName, setOriginName] = useState("");
   const [destinationName, setDestinationName] = useState("");
+  const [mapSelectionMode, setMapSelectionMode] = useState<"from" | "to" | null>(null);
 
   const [result, setResult] = useState<RouteSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -46,6 +47,15 @@ export default function Home() {
     } else {
       setDestinationName(stop.stop_name);
     }
+    setMapSelectionMode(null);
+  }
+
+  function handleClear() {
+    setOriginName("");
+    setDestinationName("");
+    setMapSelectionMode(null);
+    setResult(null);
+    setError(null);
   }
 
   useEffect(() => {
@@ -98,7 +108,10 @@ export default function Home() {
           setOriginName={setOriginName}
           destinationName={destinationName}
           setDestinationName={setDestinationName}
+          mapSelectionMode={mapSelectionMode}
+          setMapSelectionMode={setMapSelectionMode}
           onSearch={handleSearch}
+          onClear={handleClear}
           loading={loading}
           disabled={stopsLoading || !!stopsError}
         />
@@ -139,6 +152,7 @@ export default function Home() {
           stops={stops}
           originName={originName}
           destinationName={destinationName}
+          mapSelectionMode={mapSelectionMode}
           onSelectStop={handleSelectStop}
         />
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import { RouteSearchResult, Stop } from "@/types/route";
 
@@ -26,6 +26,7 @@ interface BusMapProps {
   stops: Stop[];
   originName: string;
   destinationName: string;
+  mapSelectionMode: "from" | "to" | null;
   onSelectStop: (stop: Stop, type: "from" | "to") => void;
 }
 
@@ -34,8 +35,38 @@ export default function BusMap({
   stops,
   originName,
   destinationName,
+  mapSelectionMode,
   onSelectStop,
 }: BusMapProps) {
+  const selecting = mapSelectionMode !== null;
+  const originStop = stops.find((s) => s.stop_name === originName);
+  const destinationStop = stops.find((s) => s.stop_name === destinationName);
+
+  function stopMarker(stop: Stop, interactive: boolean, markerColor: string, markerRadius: number, weight: number) {
+    return (
+      <CircleMarker
+        key={stop.stop_id}
+        center={[stop.lat, stop.lng]}
+        radius={markerRadius}
+        pathOptions={{
+          color: interactive ? "#ffffff" : markerColor,
+          fillColor: markerColor,
+          fillOpacity: 0.85,
+          weight,
+        }}
+        eventHandlers={
+          interactive
+            ? { click: () => onSelectStop(stop, mapSelectionMode!) }
+            : undefined
+        }
+      >
+        <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
+          <span className="font-medium text-xs">{stop.stop_name}</span>
+        </Tooltip>
+      </CircleMarker>
+    );
+  }
+
   return (
     <MapContainer
       center={VALLEY_CENTER}
@@ -48,83 +79,48 @@ export default function BusMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {stops.map((stop) => {
-        const isOrigin = stop.stop_name === originName;
-        const isDest = stop.stop_name === destinationName;
+      {/* Bubbles are only shown while choosing from/to on the map */}
+      {selecting &&
+        stops.map((stop) => {
+          const isOrigin = stop.stop_id === originStop?.stop_id;
+          const isDest = stop.stop_id === destinationStop?.stop_id;
 
-        let markerColor = "#718096"; // Slate-500
-        let markerRadius = 5;
-        let weight = 1;
+          let markerColor = "#718096"; // Slate-500
+          let markerRadius = 5;
+          let weight = 1;
 
-        if (isOrigin) {
-          markerColor = "#3DDC97"; // Emerald/green
-          markerRadius = 8;
-          weight = 3;
-        } else if (isDest) {
-          markerColor = "#F2A93B"; // Amber/orange
-          markerRadius = 8;
-          weight = 3;
-        } else if (stop.is_major_stop || stop.is_interchange) {
-          markerColor = "#5DA9E9"; // Blue
-          markerRadius = 6;
-          weight = 1.5;
-        }
+          if (isOrigin) {
+            markerColor = "#3DDC97"; // Emerald/green
+            markerRadius = 8;
+            weight = 3;
+          } else if (isDest) {
+            markerColor = "#F2A93B"; // Amber/orange
+            markerRadius = 8;
+            weight = 3;
+          } else if (stop.is_major_stop || stop.is_interchange) {
+            markerColor = "#5DA9E9"; // Blue
+            markerRadius = 6;
+            weight = 1.5;
+          }
 
-        return (
-          <CircleMarker
-            key={stop.stop_id}
-            center={[stop.lat, stop.lng]}
-            radius={markerRadius}
-            pathOptions={{
-              color: isOrigin || isDest ? "#ffffff" : markerColor,
-              fillColor: markerColor,
-              fillOpacity: 0.85,
-              weight: weight,
-            }}
-          >
-            <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
-              <span className="font-medium text-xs">{stop.stop_name}</span>
-            </Tooltip>
-            <Popup>
-              <div className="flex flex-col gap-2 p-1 text-slate-800">
-                <span className="font-semibold text-sm">{stop.stop_name}</span>
-                {stop.is_major_stop && (
-                  <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-semibold w-max">
-                    Major Stop
-                  </span>
-                )}
-                {stop.is_interchange && (
-                  <span className="text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-semibold w-max">
-                    Interchange
-                  </span>
-                )}
-                <div className="flex gap-2 mt-1">
-                  <button
-                    onClick={() => onSelectStop(stop, "from")}
-                    className="text-xs px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium transition-colors cursor-pointer border-0"
-                  >
-                    Set as From
-                  </button>
-                  <button
-                    onClick={() => onSelectStop(stop, "to")}
-                    className="text-xs px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded font-medium transition-colors cursor-pointer border-0"
-                  >
-                    Set as To
-                  </button>
-                </div>
-              </div>
-            </Popup>
-          </CircleMarker>
-        );
-      })}
+          return stopMarker(stop, true, markerColor, markerRadius, weight);
+        })}
+
+      {/* Selected stops are still visible when not choosing */}
+      {!selecting && originStop && stopMarker(originStop, false, "#3DDC97", 8, 3)}
+      {!selecting && destinationStop && stopMarker(destinationStop, false, "#F2A93B", 8, 3)}
 
       {result?.legs.map((leg, i) => (
         <Fragment key={leg.route_id}>
           <Marker position={[leg.from_stop.lat, leg.from_stop.lng]} icon={busIcon}>
-            <Popup>{leg.from_stop.stop_name}</Popup>
+            <Tooltip direction="top" opacity={0.9}>
+              <span className="font-medium text-xs">{leg.from_stop.stop_name}</span>
+            </Tooltip>
           </Marker>
           <Marker position={[leg.to_stop.lat, leg.to_stop.lng]} icon={busIcon}>
-            <Popup>{leg.to_stop.stop_name}</Popup>
+            <Tooltip direction="top" opacity={0.9}>
+              <span className="font-medium text-xs">{leg.to_stop.stop_name}</span>
+            </Tooltip>
           </Marker>
           {/* Outline Polyline to make the route easily recognized */}
           <Polyline

@@ -8,7 +8,10 @@ interface SearchFormProps {
   setOriginName: (name: string) => void;
   destinationName: string;
   setDestinationName: (name: string) => void;
+  mapSelectionMode: "from" | "to" | null;
+  setMapSelectionMode: (mode: "from" | "to" | null) => void;
   onSearch: (originStopId: string, destinationStopId: string) => void;
+  onClear: () => void;
   loading?: boolean;
   disabled?: boolean;
 }
@@ -19,7 +22,10 @@ export default function SearchForm({
   setOriginName,
   destinationName,
   setDestinationName,
+  mapSelectionMode,
+  setMapSelectionMode,
   onSearch,
+  onClear,
   loading,
   disabled,
 }: SearchFormProps) {
@@ -40,9 +46,23 @@ export default function SearchForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-4 bg-route-panel rounded-lg">
       <div className="flex flex-col gap-1">
-        <label htmlFor="origin" className="text-xs uppercase tracking-wide text-neutral-400">
-          From
-        </label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="origin" className="text-xs uppercase tracking-wide text-neutral-400">
+            From
+          </label>
+          <button
+            type="button"
+            onClick={() => setMapSelectionMode(mapSelectionMode === "from" ? null : "from")}
+            disabled={disabled}
+            className={`text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer border-0 ${
+              mapSelectionMode === "from"
+                ? "bg-emerald-600 text-white"
+                : "bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent disabled:opacity-50"
+            }`}
+          >
+            Choose from map
+          </button>
+        </div>
         <input
           id="origin"
           list="stop-options"
@@ -55,9 +75,23 @@ export default function SearchForm({
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="destination" className="text-xs uppercase tracking-wide text-neutral-400">
-          To
-        </label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="destination" className="text-xs uppercase tracking-wide text-neutral-400">
+            To
+          </label>
+          <button
+            type="button"
+            onClick={() => setMapSelectionMode(mapSelectionMode === "to" ? null : "to")}
+            disabled={disabled}
+            className={`text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer border-0 ${
+              mapSelectionMode === "to"
+                ? "bg-amber-600 text-white"
+                : "bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent disabled:opacity-50"
+            }`}
+          >
+            Choose from map
+          </button>
+        </div>
         <input
           id="destination"
           list="stop-options"
@@ -68,6 +102,12 @@ export default function SearchForm({
           className="rounded-md bg-route-bg border border-route-line px-3 py-2 text-sm outline-none focus:border-route-accent disabled:opacity-50"
         />
       </div>
+
+      {mapSelectionMode && (
+        <p className="text-xs text-route-accent">
+          Click a stop bubble on the map to set the {mapSelectionMode === "from" ? "origin" : "destination"}.
+        </p>
+      )}
 
       {/* Real stop names from GET /stops, fetched once on page load */}
       <datalist id="stop-options">
@@ -82,6 +122,15 @@ export default function SearchForm({
         className="mt-1 rounded-md bg-route-accent text-route-bg font-medium py-2 text-sm disabled:opacity-50"
       >
         {loading ? "Searching…" : "Find route"}
+      </button>
+
+      <button
+        type="button"
+        onClick={onClear}
+        disabled={disabled || (!originName && !destinationName)}
+        className="rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white font-medium py-2 text-sm disabled:opacity-50 transition-colors cursor-pointer"
+      >
+        Clear
       </button>
     </form>
   );
