@@ -10,7 +10,7 @@ logic without a test failing.
 import pandas as pd
 import pytest
 
-from clean_data import CleaningStats, clean_route_stops, clean_routes, clean_stops
+from clean_data import CleaningStats, clean_route_stops, clean_routes, clean_stops, dedup_stops, dedup_routes, _stop_set_similarity
 
 
 @pytest.fixture
@@ -36,8 +36,8 @@ def stops_raw():
 
 def test_clean_stops_flags_out_of_bounds(stops_raw):
     stops = clean_stops(stops_raw)
-    assert stops.loc[stops["stop_id"] == "S003", "geo_out_of_bounds"].iloc[0] is True
-    assert stops.loc[stops["stop_id"] == "S001", "geo_out_of_bounds"].iloc[0] is False
+    assert stops.loc[stops["stop_id"] == "S003", "geo_out_of_bounds"].iloc[0]
+    assert not stops.loc[stops["stop_id"] == "S001", "geo_out_of_bounds"].iloc[0]
 
 
 def test_clean_route_stops_removes_orphans_and_resequences(stops_raw):
@@ -124,3 +124,98 @@ def test_clean_routes_recomputes_total_stops_after_orphan_removal(stops_raw):
     assert int(routes.loc[0, "total_stops"]) == 2
     assert "R1" in stats.end_stop_corrected
     assert "R1" in stats.total_stops_corrected
+
+
+def test_stop_set_similarity_basic():
+    a = frozenset({"S1", "S2", "S3"})
+    b = frozenset({"S2", "S3", "S4"})
+    assert _stop_set_similarity(a, b) == pytest.approx(2 / 4)
+    assert _stop_set_similarity(frozenset(), frozenset()) == 1.0
+    assert _stop_set_similarity(a, a) == 1.0
+
+
+def test_dedup_stops_proposes_but_does_not_merge_without_overrides():
+    # Two stops ~11m apart (well within 250m radius) — should be proposed as a
+    # candidate cluster but NOT merged, since no overrides_path is given.
+    stops = pd.DataFrame([
+        {"stop_id": "S001", "stop_name": "A", "lat": 27.7000, "lng": 85.3000},
+        {"stop_id": "S002", "stop_name": "A dup", "lat": 27.70010, "lng": 85.3000},
+        {"stop_id": "S003", "stop_name": "Far away", "lat": 27.9000, "lng": 85.5000},
+    ])
+    stats = CleaningStats()
+    deduped, remap = dedup_stops(stops, stats, overrides_path=None)
+
+    assert remap == {}
+    assert len(deduped) == 3  # nothing dropped
+    assert any(set(c) == {"S001", "S002"} for c in stats.stop_dedup_candidates)
+    assert any(set(c) == {"S001", "S002"} for c in stats.stop_dedup_pending_review)
+
+
+def test_dedup_stops_merges_when_confirmed(tmp_path):
+    stops = pd.DataFrame([
+        {"stop_id": "S001", "stop_name": "A", "lat": 27.7000, "lng": 85.3000},
+        {"stop_id": "S002", "stop_name": "A dup", "lat": 27.70010, "lng": 85.3000},
+    ])
+    overrides = tmp_path / "stop_dedup_overrides.yaml"
+    overrides.write_text("confirmed_merges:\n  - keep: S001\n    drop: [S002]\n")
+
+    stats = CleaningStats()
+    deduped, remap = dedup_stops(stops, stats, overrides_path=overrides)
+
+    assert remap == {"S002": "S001"}
+    assert list(deduped["stop_id"]) == ["S001"]
+    assert stats.stop_dedup_dropped == 1
+    assert ["S001", "S002"] in stats.stop_dedup_groups
+
+
+def test_dedup_routes_merges_and_sets_bidirectional(tmp_path):
+    routes = pd.DataFrame([
+        {"route_id": "R1", "route_name": "A-B", "operator_id": "OP1"},
+        {"route_id": "R2", "route_name": "B-A", "operator_id": "OP1"},
+    ])
+    route_stops = pd.DataFrame([
+        {"route_id": "R1", "stop_id": "S1", "sequence_no": 1},
+        {"route_id": "R1", "stop_id": "S2", "sequence_no": 2},
+        {"route_id": "R2", "stop_id": "S2", "sequence_no": 1},
+        {"route_id": "R2", "stop_id": "S1", "sequence_no": 2},
+    ])
+    route_operators = pd.DataFrame([
+        {"route_id": "R1", "operator_id": "OP1"},
+        {"route_id": "R2", "operator_id": "OP1"},
+    ])
+    overrides = tmp_path / "route_dedup_overrides.yaml"
+    overrides.write_text(
+        "confirmed_merges:\n  - keep: R1\n    drop: [R2]\n    bidirectional: true\n"
+    )
+
+    stats = CleaningStats()
+    new_routes, new_route_stops, new_route_operators = dedup_routes(
+        routes, route_stops, route_operators, stats, overrides_path=overrides
+    )
+
+    assert list(new_routes["route_id"]) == ["R1"]
+    assert new_routes.loc[new_routes["route_id"] == "R1", "is_bidirectional"].iloc[0] == True
+    assert "R2" not in set(new_route_stops["route_id"])
+    assert ("R1", "R2") in stats.route_dedup_merged
+
+
+def test_dedup_routes_warns_and_skips_unknown_route_id(tmp_path, caplog):
+    routes = pd.DataFrame([
+        {"route_id": "R1", "route_name": "A-B", "operator_id": "OP1"},
+    ])
+    route_stops = pd.DataFrame([
+        {"route_id": "R1", "stop_id": "S1", "sequence_no": 1},
+    ])
+    route_operators = pd.DataFrame([{"route_id": "R1", "operator_id": "OP1"}])
+    overrides = tmp_path / "route_dedup_overrides.yaml"
+    overrides.write_text(
+        "confirmed_merges:\n  - keep: R1\n    drop: [R999]\n"  # R999 doesn't exist
+    )
+
+    stats = CleaningStats()
+    new_routes, _, _ = dedup_routes(
+        routes, route_stops, route_operators, stats, overrides_path=overrides
+    )
+
+    assert list(new_routes["route_id"]) == ["R1"]  # nothing dropped, R1 untouched
+    assert stats.route_dedup_merged == []

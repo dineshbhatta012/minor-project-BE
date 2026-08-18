@@ -1,0 +1,15 @@
+
+> kathmandu-bus-route-finder-frontend@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 4.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 14.2s (564 modules)
+ GET / 200 in 61ms
+ GET / 200 in 32ms
+ GET / 200 in 55ms

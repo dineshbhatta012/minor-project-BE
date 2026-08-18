@@ -95,11 +95,73 @@ def main():
             if not csv_path.exists():
                 print(f"  SKIP {table}: {csv_path} not found", file=sys.stderr)
                 continue
-            with open(csv_path, encoding="utf-8") as f:
-                cur.copy_expert(
-                    f"COPY {table} ({columns}) FROM STDIN WITH (FORMAT csv, HEADER true, NULL '')",
-                    f,
-                )
+            # Some processed CSVs store array-like fields as comma-separated
+            # strings (e.g. "ward,landmark") instead of Postgres array
+            # literals (e.g. {ward,landmark}). Detect and convert the common
+            # array columns before streaming to COPY so Postgres accepts them.
+            import csv, tempfile, os
+
+            ARRAY_COLS = {"aliases", "unverified_fields"}
+
+            with open(csv_path, encoding="utf-8", newline='') as inf:
+                reader = csv.reader(inf)
+                try:
+                    header = next(reader)
+                except StopIteration:
+                    print(f"  SKIP {table}: {filename} is empty", file=sys.stderr)
+                    continue
+                # Normalize header names
+                header_clean = [h.strip() for h in header]
+
+                # Only include the columns expected by the DB COPY statement; this
+                # drops any extra trailing unnamed columns that appear in some CSVs.
+                desired_cols = [c.strip() for c in columns.split(',')]
+                col_index = {name: i for i, name in enumerate(header_clean)}
+
+                # Final columns to write are those both desired by the DB and
+                # actually present in the CSV header. Omitting missing columns
+                # lets Postgres apply column defaults (e.g. created_at).
+                final_cols = [c for c in desired_cols if c in col_index]
+                if not final_cols:
+                    print(f"  SKIP {table}: no matching columns found in {filename}", file=sys.stderr)
+                    continue
+
+                # Prepare array columns among the final cols
+                final_array_cols = [c for c in final_cols if c in ARRAY_COLS]
+
+                # Write a temporary CSV containing only final columns, with array
+                # fields converted to Postgres array literal syntax if needed.
+                with tempfile.NamedTemporaryFile(mode="w", newline='', delete=False, encoding="utf-8") as tmpf:
+                    writer = csv.writer(tmpf)
+                    writer.writerow(final_cols)
+                    from datetime import datetime
+                    now_str = datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
+                    for row in reader:
+                        # Ensure row has enough columns
+                        if len(row) < len(header_clean):
+                            row += [''] * (len(header_clean) - len(row))
+                        out_row = []
+                        for col in final_cols:
+                            val = row[col_index[col]].strip() if col in col_index else ''
+                            # If created_at/updated_at are missing in the CSV, fill with now
+                            if col in ("created_at", "updated_at") and not val:
+                                val = now_str
+                            if col in final_array_cols and val and not (val.startswith('{') and val.endswith('}')):
+                                val = '{' + val + '}'
+                            out_row.append(val)
+                        writer.writerow(out_row)
+                    tmpname = tmpf.name
+
+                with open(tmpname, encoding="utf-8", newline='') as tf:
+                    cur.copy_expert(
+                        f"COPY {table} ({', '.join(final_cols)}) FROM STDIN WITH (FORMAT csv, HEADER true, NULL '')",
+                        tf,
+                    )
+                try:
+                    os.unlink(tmpname)
+                except Exception:
+                    pass
+
             print(f"  loaded {table} from {filename} ({cur.rowcount} rows)")
 
         print("\nSanity checks (every count should be 0):")

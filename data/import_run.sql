@@ -7,12 +7,14 @@
 --   psql -d your_database -f import.sql
 -- ============================================================================
 
+TRUNCATE route_stops, route_operators, route_return_leg_priority, fare_rules, routes, stops, operators RESTART IDENTITY CASCADE;
+
 \copy operators (operator_id, name, service_type, contact_number, rating, unverified_fields) FROM '/home/djoker_209/Desktop/kathmandu-bus-route-finder/data/processed/operators_clean.csv' WITH (FORMAT csv, HEADER true, NULL '')
 
 -- geom is populated automatically by the trg_stops_set_geom trigger (schema.sql) as each row lands
 \copy stops (stop_id, stop_name, aliases, lat, lng, zone, district, ward, is_major_stop, landmark, has_shelter, has_ticket_counter, is_interchange, wheelchair_access, audio_support, status, unverified_fields, created_at, updated_at, geo_out_of_bounds) FROM '/home/djoker_209/Desktop/kathmandu-bus-route-finder/data/processed/stops_clean.csv' WITH (FORMAT csv, HEADER true, NULL '')
 
-\copy routes (route_id, route_name, short_name, vehicle_type, route_type, operator, start_stop_id, end_stop_id, total_stops, approx_distance_km, estimated_duration_min, service_start_time, service_end_time, frequency_min, fare_type, has_ac, is_express, status, created_at, updated_at, operator_id, return_leg_verified, operator_id_raw, is_multi_operator, haversine_distance_km, max_consecutive_stop_jump_km, approx_distance_km_original, distance_flagged_for_recompute, status_original, status_corrected_for_return_leg, is_bidirectional) FROM '/home/djoker_209/Desktop/kathmandu-bus-route-finder/data/processed/routes_clean_no_notes.csv' WITH (FORMAT csv, HEADER true, NULL '')
+\copy routes (route_id, route_name, short_name, vehicle_type, route_type, operator, start_stop_id, end_stop_id, total_stops, approx_distance_km, estimated_duration_min, service_start_time, service_end_time, frequency_min, fare_type, has_ac, is_express, status, notes, created_at, updated_at, operator_id, return_leg_verified, operator_id_raw, is_multi_operator, haversine_distance_km, max_consecutive_stop_jump_km, approx_distance_km_original, distance_flagged_for_recompute, status_original, status_corrected_for_return_leg, is_bidirectional) FROM '/home/djoker_209/Desktop/kathmandu-bus-route-finder/data/processed/routes_clean.csv' WITH (FORMAT csv, HEADER true, NULL '')
 
 \copy route_stops (route_id, stop_id, sequence_no) FROM '/home/djoker_209/Desktop/kathmandu-bus-route-finder/data/processed/route_stops_clean.csv' WITH (FORMAT csv, HEADER true, NULL '')
 

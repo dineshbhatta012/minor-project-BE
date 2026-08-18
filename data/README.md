@@ -77,11 +77,11 @@ data/
 
 | Table              | Row count |
 |--------------------|-----------|
-| `routes`           | 87        |
-| `stops`             | 300       |
-| `operators`         | 28        |
-| `route_stops`       | 1,589     |
-| `route_operators`   | 85        |
+| `routes`           | 88        |
+| `stops`             | 302       |
+| `operators`         | 29        |
+| `route_stops`       | 1,662     |
+| `route_operators`   | 86        |
 | `fare_rules`        | 5         |
 
 All of the above are confirmed loaded successfully into a live
@@ -109,12 +109,6 @@ the `EXCLUDE USING gist` constraint) and correctly computed as
   87 routes** as pending return-leg verification, so most of the dataset
   likely isn't field-verified yet even though it's now referentially clean.
 
-**Unresolved operator matches** — 3 routes have no confirmed operator
-(`operator_id = NULL`):
-  - `R2295986`
-  - `R2295974`
-  - `R2301161`
-
-  Source listed `operator = "Local Microbus"` — an informal placeholder
-  with no registered match.
+**Unresolved operator matches** — none currently. All routes have a
+resolved `operator_id` as of the latest cleaned dataset.
 

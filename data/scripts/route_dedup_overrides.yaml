@@ -1,0 +1,24 @@
+confirmed_merges:
+  - keep: R3068536   # Kalanki- Lagankhel
+    drop: [R3068548]  # Lagankhel - Kalanki
+    bidirectional: true
+
+  - keep: R2295734   # Ratna Park-Budhanilkantha School
+    drop: [R2323381]  # Budhanilkantha School- Ratna Park
+    bidirectional: true
+
+  - keep: R2988893   # Ratnapark-Changu
+    drop: [R2989027]  # Changu-Ratnapark
+    bidirectional: true
+
+  - keep: R2988983   # Chyamasingh to Ratnapark
+    drop: [R2989052]  # Ratna Park - Chyamasingh
+    bidirectional: true
+
+  - keep: R2301205   # Purano Bus Park-Shivapuri
+    drop: [R2301206]  # Shivapuri-Purano Bus Park
+    bidirectional: true
+
+  - keep: R3102605   # Swyambhu-Chakrapath parikrama (superset, includes S0211)
+    drop: [R2301263]  # Chakrapath Parikrama — same loop, rotated start point
+    bidirectional: false

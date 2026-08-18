@@ -1,0 +1,45 @@
+confirmed_merges:
+  - keep: S0069
+    drop: [S0074, S0091, S0114]
+
+  - keep: S0069
+    drop: [S0091]
+
+  - keep: S0055
+    drop: [S0340]
+
+  - keep: S0005
+    drop: [S0206]
+
+  - keep: S0045
+    drop: [S0012]
+
+  - keep: S0110
+    drop: [S0021]
+
+  - keep: S0269
+    drop: [S0037]
+
+  - keep: S0044
+    drop: [S0336]
+
+  - keep: S0056
+    drop: [S0277]
+
+  - keep: S0063
+    drop: [S0235]
+
+  - keep: S0345
+    drop: [S0064]
+
+  - keep: S0202
+    drop: [S0080]
+
+  - keep: S0103
+    drop: [S0175]
+
+  - keep: S0229
+    drop: [S0122]
+
+  - keep: S0159
+    drop: [S0215]

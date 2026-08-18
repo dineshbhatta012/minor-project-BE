@@ -1,0 +1,73 @@
+routes:
+  - route_id: R-NY-03
+    verdict: keep
+  - route_id: R2276770
+    verdict: drop_repeats
+  - route_id: R2301358
+    verdict: drop_repeats
+  - route_id: R2302674
+    verdict: drop_repeats
+  - route_id: R2909799
+    verdict: drop_repeats
+  - route_id: R2975649
+    verdict: drop_repeats
+  - route_id: R2988806
+    verdict: drop_repeats
+  - route_id: R2988809
+    verdict: drop_repeats
+  - route_id: R2988890
+    verdict: drop_repeats
+  - route_id: R2988891
+    verdict: drop_repeats
+  - route_id: R2988893
+    verdict: drop_repeats
+  - route_id: R2988983
+    verdict: drop_repeats
+  - route_id: R2988993
+    verdict: drop_repeats
+  - route_id: R2989027
+    verdict: drop_repeats
+  - route_id: R2989036
+    verdict: drop_repeats
+  - route_id: R2989052
+    verdict: drop_repeats
+  - route_id: R3014451
+    verdict: drop_repeats
+  - route_id: R3020244
+    verdict: drop_repeats
+  - route_id: R3070257
+    verdict: drop_repeats
+  - route_id: R3070262
+    verdict: drop_repeats
+  - route_id: R3070344
+    verdict: drop_repeats
+  - route_id: R3071562
+    verdict: drop_repeats
+  - route_id: R2277212
+    verdict: drop_repeats
+  - route_id: R2282101
+    verdict: drop_repeats
+  - route_id: R2294152
+    verdict: drop_repeats
+  - route_id: R2295974
+    verdict: drop_repeats
+  - route_id: R2295986
+    verdict: drop_repeats
+  - route_id: R2301161
+    verdict: drop_repeats
+  - route_id: R2301306
+    verdict: drop_repeats
+  - route_id: R2301357
+    verdict: drop_repeats
+  - route_id: R2989074
+    verdict: drop_repeats
+  - route_id: R2989075
+    verdict: drop_repeats
+  - route_id: R3020174
+    verdict: drop_repeats
+  - route_id: R3072924
+    verdict: drop_repeats
+  - route_id: R3074202
+    verdict: drop_repeats
+  - route_id: R3102319
+    verdict: drop_repeats

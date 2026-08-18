@@ -27,12 +27,12 @@ sudo apt install postgresql-16 postgresql-16-postgis-3
 |---|---|
 | `schema.sql` | Table definitions, indexes, triggers, constraints. Run first. |
 | `import.sql` | `\copy` statements for all 7 CSVs + sanity checks. Run second. |
-| `operators_clean.csv` | 28 rows — bus/microbus/tempo operators |
-| `stops_clean.csv` | 300 rows — physical stops (lat/lng, amenities) |
-| `routes_clean.csv` | 87 rows — routes (distance, timing, operator link) |
-| `route_stops_clean.csv` | 1589 rows — ordered route ↔ stop mapping |
-| `route_operators_clean.csv` | 85 rows — route ↔ operator (M:N, one primary each) |
-| `return_leg_verification_priority_clean.csv` | 86 rows — auxiliary QA table |
+| `operators_clean.csv` | 29 rows — bus/microbus/tempo operators |
+| `stops_clean.csv` | 302 rows — physical stops (lat/lng, amenities) |
+| `routes_clean.csv` | 88 rows — routes (distance, timing, operator link) |
+| `route_stops_clean.csv` | 1662 rows — ordered route ↔ stop mapping |
+| `route_operators_clean.csv` | 86 rows — route ↔ operator (M:N, one primary each) |
+| `return_leg_verification_priority_clean.csv` | 87 rows — auxiliary QA table |
 | `fare_rules_clean.csv` | 5 rows — distance-banded fare lookup |
 | `report.md` / `report_v4.md` | Full audit trail — read these before trusting a number |
 
@@ -70,14 +70,10 @@ read `0` except `fare_rules row count`, which should read `5`.
 
 ## Known data caveats (see `report_v4.md` for full detail)
 
-- **3 routes** (`R2295986`, `R2295974`, `R2301161`) have `operator_id =
-  NULL` — all three list `operator = "Local Microbus"`, a generic/informal
-  name with no matching registered operator. Flagged, not deleted.
 - **2 routes** (`R3102124`, `R3028077`) had corrupted/invalid `is_express`
-  values in the source export. Both were repaired and both carry an
-  explanatory note in `routes.notes` — query
-  `SELECT route_id, notes FROM routes WHERE notes IS NOT NULL` to see them.
-  `is_express` for both was unrecoverable and defaults to `False`.
+  values in the source export. `is_express` for both was unrecoverable and
+  defaults to `False`. (No unresolved `operator_id` nulls remain as of the
+  latest cleaned dataset.)
 - **`fare_rules.verification_note`** flags the fare figures as a
   2026-08 desk estimate, pending confirmation against the official Bagmati
   Province gazette notice — not yet independently verified.
