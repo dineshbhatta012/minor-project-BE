@@ -14,9 +14,12 @@ export interface RouteLeg {
   route_name: string;
   from_stop: Stop;
   to_stop: Stop;
-  // Straight stop-to-stop points from the API. lib/osrm.ts replaces this
-  // with a real road-following polyline client-side.
+  // Stop coordinates in route order from the API (the polyline is drawn
+  // through these so it follows the bus stops in sequence).
   path: [number, number][]; // [lat, lng][]
+  // After OSRM enrichment, the original stop coordinates are preserved here
+  // so bus-stop markers remain at the correct positions.
+  stopCoords?: [number, number][];
 }
 
 export interface RouteSearchResult {
@@ -29,4 +32,19 @@ export interface RouteSearchResult {
 export interface RouteSearchRequest {
   origin_stop_id: string;
   destination_stop_id: string;
+}
+
+export interface RouteSummary {
+  route_id: string;
+  route_name: string;
+  short_name: string | null;
+  vehicle_type: string;
+  total_stops: number;
+  approx_distance_km?: number | null;
+  start_stop_id: string;
+  end_stop_id: string;
+}
+
+export interface RouteDetail extends RouteSummary {
+  stops: Stop[];
 }

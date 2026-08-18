@@ -11,6 +11,7 @@ interface SearchFormProps {
   mapSelectionMode: "from" | "to" | null;
   setMapSelectionMode: (mode: "from" | "to" | null) => void;
   onSearch: (originStopId: string, destinationStopId: string) => void;
+  onSwap: () => void;
   onClear: () => void;
   loading?: boolean;
   disabled?: boolean;
@@ -25,6 +26,7 @@ export default function SearchForm({
   mapSelectionMode,
   setMapSelectionMode,
   onSearch,
+  onSwap,
   onClear,
   loading,
   disabled,
@@ -74,6 +76,24 @@ export default function SearchForm({
         />
       </div>
 
+      {/* Swap origin ↔ destination */}
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={onSwap}
+          disabled={disabled || (!originName && !destinationName)}
+          title="Swap origin and destination"
+          className="rounded-full bg-route-bg border border-route-line p-1.5 text-neutral-300 hover:border-route-accent hover:text-white disabled:opacity-50 transition-colors cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7 4l-4 4 4 4" />
+            <path d="M17 20l4-4-4-4" />
+            <line x1="3" y1="8" x2="21" y2="8" />
+            <line x1="21" y1="16" x2="3" y2="16" />
+          </svg>
+        </button>
+      </div>
+
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <label htmlFor="destination" className="text-xs uppercase tracking-wide text-neutral-400">
@@ -105,7 +125,7 @@ export default function SearchForm({
 
       {mapSelectionMode && (
         <p className="text-xs text-route-accent">
-          Click a stop bubble on the map to set the {mapSelectionMode === "from" ? "origin" : "destination"}.
+          Click a bus stop icon on the map to set the {mapSelectionMode === "from" ? "origin" : "destination"}.
         </p>
       )}
 

@@ -151,7 +151,7 @@ R-SAJHA-08,S0036,10,Singha Durbar West Stop
 R-SAJHA-08,S0088,11,Bhadrakali
 R-SAJHA-08,S0236,12,"NAC (Nepal Airlines Corporation, Kantipath)"
 R-SAJHA-08,S0152,13,Jamal
-R2276770,S0198,1,Purano Bus Park
+R2276770,S0198,1,Ratnapark(purano bus park)
 R2276770,S0086,2,Tourism Board Stop
 R2276770,S0088,3,Bhadrakali
 R2276770,S0036,4,Singha Durbar West Stop
@@ -195,7 +195,7 @@ R2276999,S0027,16,KMC stop
 R2276999,S0139,17,Sinamangal/Ring Road Stop सिनामंगल
 R2276999,S0053,18,Gairigaun Stop
 R2276999,S0107,19,Koteshwor Stop
-R2277212,S0198,1,Purano Bus Park
+R2277212,S0198,1,Ratnapark(purano bus park)
 R2277212,S0137,2,Ghantaghar (घण्टाघर) stop
 R2277212,S0094,3,Krishna Pauroti Stop
 R2277212,S0042,4,Kamaladi Road (कमलादी) stop
@@ -210,7 +210,7 @@ R2277212,S0027,12,KMC stop
 R2277212,S0139,13,Sinamangal/Ring Road Stop सिनामंगल
 R2277212,S0053,14,Gairigaun Stop
 R2277212,S0107,15,Koteshwor Stop
-R2282031,S0198,1,Purano Bus Park
+R2282031,S0198,1,Ratnapark(purano bus park)
 R2282031,S0086,2,Tourism Board Stop
 R2282031,S0067,3,Shahid Gate
 R2282031,S0076,4,Sundhara Stop
@@ -245,7 +245,7 @@ R2282101,S0005,16,Putalisadak Stop
 R2282101,S0206,17,Putalisadak chowk
 R2282101,S0066,18,Bhrikuti Mandap Stop
 R2282101,S0086,19,Tourism Board Stop
-R2282101,S0198,20,Purano Bus Park
+R2282101,S0198,20,Ratnapark(purano bus park)
 R2294107,S0020,1,Gwarko Chowk Stop
 R2294107,S0141,2,Tyogal
 R2294107,S0133,3,Saughal
@@ -266,7 +266,7 @@ R2294107,S0100,17,RNAC stop
 R2294107,S0171,18,Bir Hospital
 R2294107,S0013,19,Ratna Park
 R2294152,S0013,1,Ratna Park
-R2294152,S0198,2,Purano Bus Park
+R2294152,S0198,2,Ratnapark(purano bus park)
 R2294152,S0086,3,Tourism Board Stop
 R2294152,S0088,4,Bhadrakali
 R2294152,S0036,5,Singha Durbar West Stop
@@ -303,7 +303,7 @@ R2295734,S0096,14,Budhanilkantha Micro Stand
 R2295734,S0176,15,Budhanilkantha Stop
 R2295734,S0143,16,Budhanilkantha School Blue Micro Stand
 R2295768,S0013,1,Ratna Park
-R2295768,S0198,2,Purano Bus Park
+R2295768,S0198,2,Ratnapark(purano bus park)
 R2295768,S0086,3,Tourism Board Stop
 R2295768,S0088,4,Bhadrakali
 R2295768,S0036,5,Singha Durbar West Stop
@@ -337,7 +337,7 @@ R2295903,S0076,1,Sundhara Stop
 R2295903,S0100,2,RNAC stop
 R2295903,S0171,3,Bir Hospital
 R2295903,S0013,4,Ratna Park
-R2295903,S0198,5,Purano Bus Park
+R2295903,S0198,5,Ratnapark(purano bus park)
 R2295903,S0086,6,Tourism Board Stop
 R2295903,S0066,7,Bhrikuti Mandap Stop
 R2295903,S0102,8,New Plaza Stop
@@ -371,7 +371,7 @@ R2295942,S0076,1,Sundhara Stop
 R2295942,S0100,2,RNAC stop
 R2295942,S0171,3,Bir Hospital
 R2295942,S0013,4,Ratna Park
-R2295942,S0198,5,Purano Bus Park
+R2295942,S0198,5,Ratnapark(purano bus park)
 R2295942,S0086,6,Tourism Board Stop
 R2295942,S0066,7,Bhrikuti Mandap Stop
 R2295942,S0102,8,New Plaza Stop
@@ -387,7 +387,7 @@ R2295942,S0059,17,SchEMS
 R2295942,S0205,18,Ratna Rajya Stop
 R2295942,S0077,19,Apex College Stop
 R2295942,S0046,20,Tempo Stop Near Old Baneshwar
-R2295974,S0198,1,Purano Bus Park
+R2295974,S0198,1,Ratnapark(purano bus park)
 R2295974,S0086,2,Tourism Board Stop
 R2295974,S0088,3,Bhadrakali
 R2295974,S0036,4,Singha Durbar West Stop
@@ -422,7 +422,7 @@ R2295986,S0097,9,Maitighar
 R2295986,S0036,10,Singha Durbar West Stop
 R2295986,S0088,11,Bhadrakali
 R2295986,S0086,12,Tourism Board Stop
-R2295986,S0198,13,Purano Bus Park
+R2295986,S0198,13,Ratnapark(purano bus park)
 R2295986,S0013,14,Ratna Park
 R2295986,S0171,15,Bir Hospital
 R2295986,S0100,16,RNAC stop
@@ -452,8 +452,8 @@ R2301161,S0171,22,Bir Hospital
 R2301161,S0166,23,Kantipath
 R2301161,S0152,24,Jamal
 R2301161,S0137,25,Ghantaghar (घण्टाघर) stop
-R2301161,S0198,26,Purano Bus Park
-R2301205,S0198,1,Purano Bus Park
+R2301161,S0198,26,Ratnapark(purano bus park)
+R2301205,S0198,1,Ratnapark(purano bus park)
 R2301205,S0086,2,Tourism Board Stop
 R2301205,S0067,3,Shahid Gate
 R2301205,S0076,4,Sundhara Stop
@@ -474,7 +474,7 @@ R2301205,S0038,18,Deuba Chowk stop
 R2301205,S0096,19,Budhanilkantha Micro Stand
 R2301205,S0176,20,Budhanilkantha Stop
 R2301205,S0144,21,Shivapuri Park Stop
-R2301206,S0198,1,Purano Bus Park
+R2301206,S0198,1,Ratnapark(purano bus park)
 R2301206,S0137,2,Ghantaghar (घण्टाघर) stop
 R2301206,S0152,3,Jamal
 R2301206,S0166,4,Kantipath
@@ -684,7 +684,7 @@ R2909799,S0102,35,New Plaza Stop
 R2909799,S0005,36,Putalisadak Stop
 R2909799,S0206,37,Putalisadak chowk
 R2909799,S0031,38,Bagbazar Stop
-R2975649,S0198,1,Purano Bus Park
+R2975649,S0198,1,Ratnapark(purano bus park)
 R2975649,S0086,2,Tourism Board Stop
 R2975649,S0088,3,Bhadrakali
 R2975649,S0036,4,Singha Durbar West Stop
@@ -715,7 +715,7 @@ R2975649,S0109,28,Chapal Karkhana stop
 R2975649,S0030,29,Chakrapath Stop-- South
 R2975649,S0044,30,Narayan Gopal Chowk
 R2988806,S0013,1,Ratna Park
-R2988806,S0198,2,Purano Bus Park
+R2988806,S0198,2,Ratnapark(purano bus park)
 R2988806,S0086,3,Tourism Board Stop
 R2988806,S0278,4,"N.A.Bh (Nepal Army Headquarters, Bhadrakali)"
 R2988806,S0088,5,Bhadrakali
@@ -749,7 +749,7 @@ R2988806,S0317,32,Dadhikot Health Post
 R2988806,S0092,33,Gathaghar
 R2988806,S0007,34,Chardobato
 R2988806,S0021,35,Thimi
-R2988809,S0198,1,Purano Bus Park
+R2988809,S0198,1,Ratnapark(purano bus park)
 R2988809,S0086,2,Tourism Board Stop
 R2988809,S0088,3,Bhadrakali
 R2988809,S0036,4,Singha Durbar West Stop
@@ -780,7 +780,7 @@ R2988809,S0369,28,Thali
 R2988809,S0370,29,Danchhi
 R2988809,S0371,30,Bramhakhel
 R2988809,S0146,31,Sakhu Stop
-R2988810,S0198,1,Purano Bus Park
+R2988810,S0198,1,Ratnapark(purano bus park)
 R2988810,S0086,2,Tourism Board Stop
 R2988810,S0067,3,Shahid Gate
 R2988810,S0076,4,Sundhara Stop
@@ -801,7 +801,7 @@ R2988810,S0038,18,Deuba Chowk stop
 R2988810,S0096,19,Budhanilkantha Micro Stand
 R2988810,S0176,20,Budhanilkantha Stop
 R2988835,S0013,1,Ratna Park
-R2988835,S0198,2,Purano Bus Park
+R2988835,S0198,2,Ratnapark(purano bus park)
 R2988835,S0086,3,Tourism Board Stop
 R2988835,S0067,4,Shahid Gate
 R2988835,S0076,5,Sundhara Stop
@@ -823,7 +823,7 @@ R2988836,S0100,9,RNAC stop
 R2988836,S0171,10,Bir Hospital
 R2988836,S0013,11,Ratna Park
 R2988890,S0031,1,Bagbazar Stop
-R2988890,S0198,2,Purano Bus Park
+R2988890,S0198,2,Ratnapark(purano bus park)
 R2988890,S0086,3,Tourism Board Stop
 R2988890,S0088,4,Bhadrakali
 R2988890,S0036,5,Singha Durbar West Stop
@@ -860,7 +860,7 @@ R2988890,S0199,35,Byasi Stop
 R2988890,S0165,36,Mahakali Stop
 R2988890,S0050,37,Mahalaxmi Stop
 R2988890,S0025,38,Kamal Binayak
-R2988891,S0198,1,Purano Bus Park
+R2988891,S0198,1,Ratnapark(purano bus park)
 R2988891,S0086,2,Tourism Board Stop
 R2988891,S0088,3,Bhadrakali
 R2988891,S0036,4,Singha Durbar West Stop
@@ -904,7 +904,7 @@ R2988891,S0153,41,Poolbazar Bus Stop (Pulbazar)
 R2988891,S0136,42,Banepa
 R2988891,S0208,43,Panauti
 R2988893,S0031,1,Bagbazar Stop
-R2988893,S0198,2,Purano Bus Park
+R2988893,S0198,2,Ratnapark(purano bus park)
 R2988893,S0086,3,Tourism Board Stop
 R2988893,S0088,4,Bhadrakali
 R2988893,S0036,5,Singha Durbar West Stop
@@ -983,8 +983,8 @@ R2988983,S0076,38,Sundhara Stop
 R2988983,S0100,39,RNAC stop
 R2988983,S0171,40,Bir Hospital
 R2988983,S0013,41,Ratna Park
-R2988983,S0198,42,Purano Bus Park
-R2988993,S0198,1,Purano Bus Park
+R2988983,S0198,42,Ratnapark(purano bus park)
+R2988993,S0198,1,Ratnapark(purano bus park)
 R2988993,S0086,2,Tourism Board Stop
 R2988993,S0088,3,Bhadrakali
 R2988993,S0036,4,Singha Durbar West Stop
@@ -1028,7 +1028,7 @@ R2988993,S0153,41,Poolbazar Bus Stop (Pulbazar)
 R2988993,S0136,42,Banepa
 R2988993,S0001,43,KU Bus Stand (26 Kilo)
 R2988993,S0183,44,Dhulikhel Stop
-R2989012,S0198,1,Purano Bus Park
+R2989012,S0198,1,Ratnapark(purano bus park)
 R2989012,S0086,2,Tourism Board Stop
 R2989012,S0067,3,Shahid Gate
 R2989012,S0076,4,Sundhara Stop
@@ -1085,7 +1085,7 @@ R2989027,S0102,34,New Plaza Stop
 R2989027,S0005,35,Putalisadak Stop
 R2989027,S0206,36,Putalisadak chowk
 R2989027,S0031,37,Bagbazar Stop
-R2989036,S0198,1,Purano Bus Park
+R2989036,S0198,1,Ratnapark(purano bus park)
 R2989036,S0086,2,Tourism Board Stop
 R2989036,S0088,3,Bhadrakali
 R2989036,S0036,4,Singha Durbar West Stop
@@ -1112,7 +1112,7 @@ R2989036,S0195,24,Chabahil चाबाहील
 R2989036,S0172,25,Hyatt Regency
 R2989036,S0026,26,Boudha
 R2989036,S0135,27,Jorpati
-R2989052,S0198,1,Purano Bus Park
+R2989052,S0198,1,Ratnapark(purano bus park)
 R2989052,S0086,2,Tourism Board Stop
 R2989052,S0067,3,Shahid Gate
 R2989052,S0076,4,Sundhara Stop
@@ -1169,7 +1169,7 @@ R2989074,S0055,13,Dillibazaar stop
 R2989074,S0005,14,Putalisadak Stop
 R2989074,S0206,15,Putalisadak chowk
 R2989074,S0031,16,Bagbazar Stop
-R2989074,S0198,17,Purano Bus Park
+R2989074,S0198,17,Ratnapark(purano bus park)
 R2989075,S0135,1,Jorpati
 R2989075,S0026,2,Boudha
 R2989075,S0172,3,Hyatt Regency
@@ -1182,7 +1182,7 @@ R2989075,S0055,9,Dillibazaar stop
 R2989075,S0005,10,Putalisadak Stop
 R2989075,S0206,11,Putalisadak chowk
 R2989075,S0031,12,Bagbazar Stop
-R2989075,S0198,13,Purano Bus Park
+R2989075,S0198,13,Ratnapark(purano bus park)
 R3014451,S0081,1,Bhaktapur Hospital Stop
 R3014451,S0161,2,Bhaktapur Bus Park
 R3014451,S0014,3,Sallaghari North
@@ -1224,7 +1224,7 @@ R3014451,S0206,38,Putalisadak chowk
 R3014451,S0278,39,"N.A.Bh (Nepal Army Headquarters, Bhadrakali)"
 R3014451,S0013,40,Ratna Park
 R3014451,S0031,41,Bagbazar Stop
-R3020174,S0198,1,Purano Bus Park
+R3020174,S0198,1,Ratnapark(purano bus park)
 R3020174,S0137,2,Ghantaghar (घण्टाघर) stop
 R3020174,S0094,3,Krishna Pauroti Stop
 R3020174,S0042,4,Kamaladi Road (कमलादी) stop
@@ -1255,8 +1255,8 @@ R3020212,S0056,9,Tripureshwor
 R3020212,S0067,10,Shahid Gate
 R3020212,S0076,11,Sundhara Stop
 R3020212,S0086,12,Tourism Board Stop
-R3020212,S0198,13,Purano Bus Park
-R3020213,S0198,1,Purano Bus Park
+R3020212,S0198,13,Ratnapark(purano bus park)
+R3020213,S0198,1,Ratnapark(purano bus park)
 R3020213,S0086,2,Tourism Board Stop
 R3020213,S0067,3,Shahid Gate
 R3020213,S0076,4,Sundhara Stop
@@ -1271,7 +1271,7 @@ R3020213,S0047,12,Tinkune (Kirtipur side)
 R3020213,S0221,13,Naya Bazar
 R3020213,S0084,14,Panga Dobato
 R3020213,S0009,15,Dhokashi
-R3020231,S0198,1,Purano Bus Park
+R3020231,S0198,1,Ratnapark(purano bus park)
 R3020231,S0086,2,Tourism Board Stop
 R3020231,S0067,3,Shahid Gate
 R3020231,S0076,4,Sundhara Stop
@@ -1287,7 +1287,7 @@ R3020231,S0221,13,Naya Bazar
 R3020231,S0084,14,Panga Dobato
 R3020231,S0085,15,Nagaon Dobato
 R3020231,S0048,16,Bhatkepati
-R3020244,S0198,1,Purano Bus Park
+R3020244,S0198,1,Ratnapark(purano bus park)
 R3020244,S0086,2,Tourism Board Stop
 R3020244,S0088,3,Bhadrakali
 R3020244,S0036,4,Singha Durbar West Stop

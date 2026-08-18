@@ -1,25 +1,51 @@
 "use client";
 
-import { Fragment } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, Tooltip } from "react-leaflet";
+import { Fragment, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import { RouteSearchResult, Stop } from "@/types/route";
-
-// Leaflet's default marker icons reference image paths that don't resolve
-// correctly with Next.js's bundler. Pointing at CDN-hosted icons sidesteps
-// that without needing to fiddle with webpack config.
-const busIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
 
 // Kathmandu Valley center, used as the default map view.
 const VALLEY_CENTER: [number, number] = [27.7041, 85.32];
 
 const LEG_COLORS = ["#059669", "#2563eb", "#dc2626", "#7c3aed"];
+
+// Build a Leaflet divIcon that renders bus-icon.png clipped to a circle
+// with a coloured border ring to distinguish stop types.
+function makeBusStopIcon(size: number, borderColor: string): L.DivIcon {
+  const border = Math.max(2, Math.round(size / 8));
+  const outer = size + border * 2;
+  return L.divIcon({
+    html: `<div style="width:${outer}px;height:${outer}px;border-radius:50%;border:${border}px solid ${borderColor};overflow:hidden;display:flex;align-items:center;justify-content:center;background:${borderColor};">
+             <img src="/bus-icon.png" style="width:${size}px;height:${size}px;border-radius:50%;display:block;" />
+           </div>`,
+    className: "",           // prevent leaflet's default white-box styling
+    iconSize: [outer, outer],
+    iconAnchor: [outer / 2, outer / 2],
+    tooltipAnchor: [0, -outer / 2],
+  });
+}
+
+// Pre-built bus icons for each stop role (different sizes & colours)
+const BUS_ICON_ORIGIN = makeBusStopIcon(28, "#3DDC97");       // Green — origin
+const BUS_ICON_DESTINATION = makeBusStopIcon(28, "#F2A93B");   // Amber — destination
+const BUS_ICON_MAJOR = makeBusStopIcon(22, "#5DA9E9");         // Blue — major / interchange
+const BUS_ICON_DEFAULT = makeBusStopIcon(16, "#94a3b8");       // Slate — regular stop
+
+// Matches a route-path coordinate back to the nearest known stop (within
+// ~10 m) so path markers can show stop names in their tooltips.
+function findStop(lat: number, lng: number, stops: Stop[]): Stop | undefined {
+  let best: Stop | undefined;
+  let bestDist = Infinity;
+  for (const s of stops) {
+    const d = (s.lat - lat) ** 2 + (s.lng - lng) ** 2;
+    if (d < bestDist) {
+      bestDist = d;
+      best = s;
+    }
+  }
+  return best && Math.sqrt(bestDist) < 0.0001 ? best : undefined;
+}
 
 interface BusMapProps {
   result?: RouteSearchResult | null;
@@ -28,6 +54,19 @@ interface BusMapProps {
   destinationName: string;
   mapSelectionMode: "from" | "to" | null;
   onSelectStop: (stop: Stop, type: "from" | "to") => void;
+}
+
+// Zooms the map to the displayed result whenever it changes.
+function FitBounds({ result }: { result?: RouteSearchResult | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!result?.found || !result.legs.length) return;
+    const points = result.legs.flatMap((leg) => leg.path);
+    if (points.length > 0) {
+      map.fitBounds(L.latLngBounds(points.map(([lat, lng]) => [lat, lng])));
+    }
+  }, [result, map]);
+  return null;
 }
 
 export default function BusMap({
@@ -42,18 +81,19 @@ export default function BusMap({
   const originStop = stops.find((s) => s.stop_name === originName);
   const destinationStop = stops.find((s) => s.stop_name === destinationName);
 
-  function stopMarker(stop: Stop, interactive: boolean, markerColor: string, markerRadius: number, weight: number) {
+  function pickIcon(stop: Stop) {
+    if (stop.stop_id === originStop?.stop_id) return BUS_ICON_ORIGIN;
+    if (stop.stop_id === destinationStop?.stop_id) return BUS_ICON_DESTINATION;
+    if (stop.is_major_stop || stop.is_interchange) return BUS_ICON_MAJOR;
+    return BUS_ICON_DEFAULT;
+  }
+
+  function stopMarker(stop: Stop, interactive: boolean) {
     return (
-      <CircleMarker
+      <Marker
         key={stop.stop_id}
-        center={[stop.lat, stop.lng]}
-        radius={markerRadius}
-        pathOptions={{
-          color: interactive ? "#ffffff" : markerColor,
-          fillColor: markerColor,
-          fillOpacity: 0.85,
-          weight,
-        }}
+        position={[stop.lat, stop.lng]}
+        icon={pickIcon(stop)}
         eventHandlers={
           interactive
             ? { click: () => onSelectStop(stop, mapSelectionMode!) }
@@ -63,7 +103,7 @@ export default function BusMap({
         <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
           <span className="font-medium text-xs">{stop.stop_name}</span>
         </Tooltip>
-      </CircleMarker>
+      </Marker>
     );
   }
 
@@ -79,61 +119,58 @@ export default function BusMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* Bubbles are only shown while choosing from/to on the map */}
+      <FitBounds result={result} />
+
+      {/* Bus icons are shown while choosing from/to on the map */}
       {selecting &&
-        stops.map((stop) => {
-          const isOrigin = stop.stop_id === originStop?.stop_id;
-          const isDest = stop.stop_id === destinationStop?.stop_id;
+        stops.map((stop) => stopMarker(stop, true))}
 
-          let markerColor = "#718096"; // Slate-500
-          let markerRadius = 5;
-          let weight = 1;
+      {/* Selected stops are still visible when no route is shown */}
+      {!selecting && !result && originStop && stopMarker(originStop, false)}
+      {!selecting && !result && destinationStop && stopMarker(destinationStop, false)}
 
-          if (isOrigin) {
-            markerColor = "#3DDC97"; // Emerald/green
-            markerRadius = 8;
-            weight = 3;
-          } else if (isDest) {
-            markerColor = "#F2A93B"; // Amber/orange
-            markerRadius = 8;
-            weight = 3;
-          } else if (stop.is_major_stop || stop.is_interchange) {
-            markerColor = "#5DA9E9"; // Blue
-            markerRadius = 6;
-            weight = 1.5;
-          }
-
-          return stopMarker(stop, true, markerColor, markerRadius, weight);
-        })}
-
-      {/* Selected stops are still visible when not choosing */}
-      {!selecting && originStop && stopMarker(originStop, false, "#3DDC97", 8, 3)}
-      {!selecting && destinationStop && stopMarker(destinationStop, false, "#F2A93B", 8, 3)}
-
-      {result?.legs.map((leg, i) => (
-        <Fragment key={leg.route_id}>
-          <Marker position={[leg.from_stop.lat, leg.from_stop.lng]} icon={busIcon}>
-            <Tooltip direction="top" opacity={0.9}>
-              <span className="font-medium text-xs">{leg.from_stop.stop_name}</span>
-            </Tooltip>
-          </Marker>
-          <Marker position={[leg.to_stop.lat, leg.to_stop.lng]} icon={busIcon}>
-            <Tooltip direction="top" opacity={0.9}>
-              <span className="font-medium text-xs">{leg.to_stop.stop_name}</span>
-            </Tooltip>
-          </Marker>
-          {/* Outline Polyline to make the route easily recognized */}
-          <Polyline
-            positions={leg.path}
-            pathOptions={{ color: "#0f172a", weight: 12, opacity: 0.45 }}
-          />
-          {/* Main colored Polyline */}
-          <Polyline
-            positions={leg.path}
-            pathOptions={{ color: LEG_COLORS[i % LEG_COLORS.length], weight: 7 }}
-          />
-        </Fragment>
-      ))}
+      {result?.legs.map((leg, i) => {
+        const color = LEG_COLORS[i % LEG_COLORS.length];
+        const legStopIcon = makeBusStopIcon(18, color);
+        const isLastLeg = i === result.legs.length - 1;
+        // Use original stop coordinates for markers (falls back to path
+        // when stopCoords hasn't been set, e.g. before OSRM enrichment).
+        const markerCoords = leg.stopCoords ?? leg.path;
+        return (
+          <Fragment key={leg.route_id}>
+            {/* Outline Polyline to make the route easily recognized */}
+            <Polyline
+              positions={leg.path}
+              pathOptions={{ color: "#0f172a", weight: 12, opacity: 0.45 }}
+            />
+            {/* Main colored Polyline following actual road geometry */}
+            <Polyline
+              positions={leg.path}
+              pathOptions={{ color, weight: 7 }}
+            />
+            {/* Bus icon at every stop along the route */}
+            {markerCoords.map(([lat, lng], j) => {
+              const stop = findStop(lat, lng, stops);
+              const isRouteStart = i === 0 && j === 0;
+              const isRouteEnd = isLastLeg && j === markerCoords.length - 1;
+              const icon = isRouteStart
+                ? BUS_ICON_ORIGIN
+                : isRouteEnd
+                  ? BUS_ICON_DESTINATION
+                  : legStopIcon;
+              return (
+                <Marker key={`${leg.route_id}-${j}`} position={[lat, lng]} icon={icon}>
+                  {stop && (
+                    <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
+                      <span className="font-medium text-xs">{stop.stop_name}</span>
+                    </Tooltip>
+                  )}
+                </Marker>
+              );
+            })}
+          </Fragment>
+        );
+      })}
     </MapContainer>
   );
 }

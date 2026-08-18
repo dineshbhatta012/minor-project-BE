@@ -5,6 +5,9 @@
 // for light testing only — it's rate-limited and has no uptime guarantee.
 // Before deploying, self-host OSRM (their Docker image + a Nepal/South-Asia
 // .osm.pbf extract) or swap OSRM_BASE_URL for your own instance.
+
+import { RouteSearchResult } from "@/types/route";
+
 const OSRM_BASE_URL = "https://router.project-osrm.org";
 
 /**
@@ -39,4 +42,76 @@ export async function getRoadPath(
   } catch {
     return null; // network error, offline, etc. — caller falls back to straight line
   }
+}
+
+/**
+ * Fetches road geometry for all consecutive stop-pairs in a leg path and
+ * stitches the sub-segments into a single detailed polyline.
+ *
+ * Falls back to the original straight-line path if all OSRM calls fail.
+ */
+async function getEnrichedPath(
+  stopCoords: [number, number][],
+  profile: "driving" | "foot" = "driving"
+): Promise<[number, number][]> {
+  if (stopCoords.length < 2) return stopCoords;
+
+  // Fire all pair requests in parallel for speed.
+  const pairPromises: Promise<[number, number][] | null>[] = [];
+  for (let i = 0; i < stopCoords.length - 1; i++) {
+    const [fromLat, fromLng] = stopCoords[i];
+    const [toLat, toLng] = stopCoords[i + 1];
+    pairPromises.push(getRoadPath(fromLat, fromLng, toLat, toLng, profile));
+  }
+
+  const segments = await Promise.all(pairPromises);
+
+  // Stitch segments together, dropping duplicate junction points.
+  const stitched: [number, number][] = [];
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    if (seg && seg.length > 0) {
+      // Avoid duplicate point at the junction with the previous segment.
+      const start = stitched.length > 0 ? 1 : 0;
+      for (let j = start; j < seg.length; j++) {
+        stitched.push(seg[j]);
+      }
+    } else {
+      // OSRM failed for this pair — fall back to a straight line for it.
+      if (stitched.length === 0) {
+        stitched.push(stopCoords[i]);
+      }
+      stitched.push(stopCoords[i + 1]);
+    }
+  }
+
+  return stitched.length >= 2 ? stitched : stopCoords;
+}
+
+/**
+ * Takes a RouteSearchResult (whose leg.path arrays are just stop coordinates,
+ * i.e. straight lines) and replaces each leg.path with a road-following
+ * polyline fetched from OSRM.
+ *
+ * The original stop coordinates are preserved in a new `stopCoords` field on
+ * each leg so bus-stop markers can still be placed exactly where they belong.
+ */
+export async function enrichRouteWithRoadGeometry(
+  result: RouteSearchResult
+): Promise<RouteSearchResult> {
+  if (!result.found || result.legs.length === 0) return result;
+
+  const enrichedLegs = await Promise.all(
+    result.legs.map(async (leg) => {
+      const roadPath = await getEnrichedPath(leg.path);
+      return {
+        ...leg,
+        // Keep original stop positions for markers; use road path for polyline.
+        stopCoords: leg.path,
+        path: roadPath,
+      };
+    })
+  );
+
+  return { ...result, legs: enrichedLegs };
 }

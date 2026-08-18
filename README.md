@@ -47,7 +47,7 @@ cp .env.example .env
 python scripts/load_data.py
 
 # Run the API server
-
+uvicorn app.main:app --reload --port 8000
 
 ```
 - **Interactive Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
