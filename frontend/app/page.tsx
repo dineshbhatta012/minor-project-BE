@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import SearchForm from "@/components/SearchForm";
+import SearchableSelect from "@/components/SearchableSelect";
 import { fetchRouteDetail, fetchRoutes, fetchStops, searchRoute } from "@/lib/api";
 import { enrichRouteWithRoadGeometry, getRoadPath } from "@/lib/osrm";
 import { haversineMeters } from "@/lib/geo";
@@ -25,12 +26,53 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const [routes, setRoutes] = useState<RouteSummary[]>([]);
-  const [routesOpen, setRoutesOpen] = useState(false);
+  const [routesOpen, setRoutesOpen] = useState(true);
   const [routesLoading, setRoutesLoading] = useState(false);
   const [routesError, setRoutesError] = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<RouteDetail | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [showSequence, setShowSequence] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [coordinateMode, setCoordinateMode] = useState(false);
+  const [pickedPoint, setPickedPoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  function handlePickCoordinate(lat: number, lng: number) {
+    setPickedPoint({ lat, lng });
+  }
+
+  function handleCopyCoordinates() {
+    if (!pickedPoint) return;
+    const text = `${pickedPoint.lat.toFixed(6)}, ${pickedPoint.lng.toFixed(6)}`;
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
+  const CATEGORY_NAMES = ["All", "Dinesh", "Dipesh", "Janak"] as const;
+
+  // Evenly split the fetched routes across the 3 categories (31/31/31).
+  const routeGroups = (() => {
+    const chunk = Math.ceil(routes.length / (CATEGORY_NAMES.length - 1));
+    const categories = CATEGORY_NAMES.filter((name) => name !== "All").map((name, i) => ({
+      name,
+      routes: routes.slice(i * chunk, (i + 1) * chunk),
+    }));
+    return [{ name: "All", routes }, ...categories];
+  })();
+
+  // Load the route list once on mount so the panel is populated by default.
+  useEffect(() => {
+    if (routes.length > 0 || routesLoading) return;
+    setRoutesLoading(true);
+    setRoutesError(null);
+    fetchRoutes()
+      .then(setRoutes)
+      .catch(() => setRoutesError("Couldn't load the route list."))
+      .finally(() => setRoutesLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [myLocation, setMyLocation] = useState<{
     lat: number;
@@ -244,6 +286,51 @@ export default function Home() {
           disabled={stopsLoading || !!stopsError}
         />
 
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => setCoordinateMode((m) => !m)}
+            className={`rounded-md border font-medium py-2 text-sm transition-colors cursor-pointer ${
+              coordinateMode
+                ? "bg-route-accent text-route-bg border-route-accent"
+                : "bg-route-bg border-route-line text-neutral-300 hover:border-route-accent hover:text-white"
+            }`}
+          >
+            {coordinateMode ? "Stop picking coordinates" : "Show coordinates"}
+          </button>
+          {coordinateMode && (
+            <p className="text-xs text-route-accent">
+              Right-click anywhere on the map to pick its coordinates.
+            </p>
+          )}
+          {pickedPoint && (
+            <div className="flex items-center gap-1.5">
+              <input
+                readOnly
+                value={`${pickedPoint.lat.toFixed(6)}, ${pickedPoint.lng.toFixed(6)}`}
+                className="flex-1 rounded-md bg-route-bg border border-route-line px-3 py-2 text-sm text-neutral-300 outline-none focus:border-route-accent"
+              />
+              <button
+                type="button"
+                onClick={handleCopyCoordinates}
+                title="Copy coordinates"
+                className="rounded-md bg-route-bg border border-route-line p-2 text-neutral-300 hover:border-route-accent hover:text-white transition-colors cursor-pointer"
+              >
+                {copied ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={handleToggleRoutes}
@@ -261,21 +348,35 @@ export default function Home() {
 
         {routesOpen && (
           <div className="flex flex-col gap-2">
-            <select
-              value=""
-              onChange={(e) => e.target.value && handleSelectRoute(e.target.value)}
-              disabled={routeLoading}
-              className="rounded-md bg-route-bg border border-route-line px-3 py-2 text-sm text-neutral-300 outline-none focus:border-route-accent disabled:opacity-50"
-            >
-              <option value="" disabled>
-                Select a route…
-              </option>
-              {routes.map((r) => (
-                <option key={r.route_id} value={r.route_id}>
-                  {r.route_name} ({r.total_stops} stops)
-                </option>
+            <div className="flex gap-1.5">
+              {routeGroups.map((group) => (
+                <button
+                  key={group.name}
+                  type="button"
+                  onClick={() => setActiveCategory(group.name)}
+                  className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors cursor-pointer border ${
+                    activeCategory === group.name
+                      ? "bg-route-accent text-route-bg border-route-accent"
+                      : "bg-route-bg border-route-line text-neutral-300 hover:border-route-accent"
+                  }`}
+                >
+                  {group.name}
+                  <span className="ml-1 opacity-70">({group.routes.length})</span>
+                </button>
               ))}
-            </select>
+            </div>
+            <SearchableSelect
+              options={routeGroups
+                .find((g) => g.name === activeCategory)!
+                .routes.map((r) => ({
+                  value: r.route_id,
+                  label: `${r.route_name} (${r.total_stops} stops)`,
+                }))}
+              value=""
+              onChange={(id) => id && handleSelectRoute(id)}
+              placeholder={`Search routes in ${activeCategory}…`}
+              disabled={routeLoading}
+            />
             {routeLoading && (
               <p className="text-xs text-route-accent">Loading route stops…</p>
             )}
@@ -379,6 +480,9 @@ export default function Home() {
           userLocation={myLocation ? { lat: myLocation.lat, lng: myLocation.lng } : null}
           focusStop={myLocation?.stop ?? null}
           walkPath={myLocation?.walkPath ?? null}
+          coordinateMode={coordinateMode}
+          onPickCoordinate={handlePickCoordinate}
+          pickedPoint={pickedPoint}
         />
       </div>
     </main>

@@ -40,6 +40,13 @@ const USER_LOCATION_ICON = L.divIcon({
   iconAnchor: [9, 9],
 });
 
+const PICK_MARKER_ICON = L.divIcon({
+  className: "",
+  html: `<div style="width:14px;height:14px;border-radius:50%;background:#dc2626;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
+
 // Matches a route-path coordinate back to the nearest known stop (within
 // ~10 m) so path markers can show stop names in their tooltips.
 function findStop(lat: number, lng: number, stops: Stop[]): Stop | undefined {
@@ -65,6 +72,9 @@ interface BusMapProps {
   userLocation?: { lat: number; lng: number } | null;
   focusStop?: Stop | null;
   walkPath?: [number, number][] | null;
+  coordinateMode?: boolean;
+  onPickCoordinate?: (lat: number, lng: number) => void;
+  pickedPoint?: { lat: number; lng: number } | null;
 }
 
 // Zooms the map to the displayed result whenever it changes.
@@ -92,6 +102,34 @@ function FlyTo({ target }: { target?: [number, number] | null }) {
   return null;
 }
 
+// While coordinate mode is active, shows a crosshair pointer on the map and
+// reports the coordinates of a right-clicked point.
+function CoordinatePicker({
+  active,
+  onPick,
+}: {
+  active: boolean;
+  onPick: (lat: number, lng: number) => void;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    if (active) {
+      container.style.cursor = "crosshair";
+    }
+    const handler = (e: L.LeafletMouseEvent) => {
+      if (!active) return;
+      onPick(e.latlng.lat, e.latlng.lng);
+    };
+    map.on("contextmenu", handler);
+    return () => {
+      container.style.cursor = "";
+      map.off("contextmenu", handler);
+    };
+  }, [active, map, onPick]);
+  return null;
+}
+
 export default function BusMap({
   result,
   stops,
@@ -102,6 +140,9 @@ export default function BusMap({
   userLocation,
   focusStop,
   walkPath,
+  coordinateMode,
+  onPickCoordinate,
+  pickedPoint,
 }: BusMapProps) {
   const selecting = mapSelectionMode !== null;
   const originStop = stops.find((s) => s.stop_name === originName);
@@ -152,6 +193,11 @@ export default function BusMap({
 
       <FitBounds result={result} />
 
+      <CoordinatePicker
+        active={coordinateMode ?? false}
+        onPick={(lat, lng) => onPickCoordinate?.(lat, lng)}
+      />
+
       <FlyTo target={focusStop ? [focusStop.lat, focusStop.lng] : null} />
 
       {/* Walking path from your location to the nearest stop (thin, dotted) */}
@@ -167,6 +213,17 @@ export default function BusMap({
         <Marker position={[userLocation.lat, userLocation.lng]} icon={USER_LOCATION_ICON}>
           <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
             <span className="font-medium text-xs">Your location</span>
+          </Tooltip>
+        </Marker>
+      )}
+
+      {/* Point picked with "Show coordinates" (right-click) */}
+      {pickedPoint && (
+        <Marker position={[pickedPoint.lat, pickedPoint.lng]} icon={PICK_MARKER_ICON}>
+          <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
+            <span className="font-medium text-xs">
+              {pickedPoint.lat.toFixed(6)}, {pickedPoint.lng.toFixed(6)}
+            </span>
           </Tooltip>
         </Marker>
       )}
