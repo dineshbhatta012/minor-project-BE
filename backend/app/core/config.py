@@ -9,6 +9,11 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg2://ktm_bus:ktm_bus@localhost:5433/ktm_bus"
     cors_origins: list[str] = ["http://localhost:3000"]
 
+    # Processed CSV backing the stops table. Updated (alongside the DB) when
+    # a stop's coordinates are changed via PATCH /stops/{stop_id} so the
+    # change survives a fresh DB import. Relative to the repo root.
+    stops_csv_path: str = "data/processed/stops_clean.csv"
+
     # Interchange penalty added when a path switches from one route to
     # another, expressed in "equivalent km" added to the Dijkstra weight.
     #

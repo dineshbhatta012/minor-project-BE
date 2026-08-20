@@ -75,6 +75,8 @@ interface BusMapProps {
   coordinateMode?: boolean;
   onPickCoordinate?: (lat: number, lng: number) => void;
   pickedPoint?: { lat: number; lng: number } | null;
+  editStopMode?: boolean;
+  onSelectStopForEdit?: (stop: Stop) => void;
 }
 
 // Zooms the map to the displayed result whenever it changes.
@@ -143,8 +145,10 @@ export default function BusMap({
   coordinateMode,
   onPickCoordinate,
   pickedPoint,
+  editStopMode,
+  onSelectStopForEdit,
 }: BusMapProps) {
-  const selecting = mapSelectionMode !== null;
+  const selecting = mapSelectionMode !== null || editStopMode === true;
   const originStop = stops.find((s) => s.stop_name === originName);
   const destinationStop = stops.find((s) => s.stop_name === destinationName);
 
@@ -164,7 +168,15 @@ export default function BusMap({
         icon={pickIcon(stop)}
         eventHandlers={
           interactive
-            ? { click: () => onSelectStop(stop, mapSelectionMode!) }
+            ? {
+                click: () => {
+                  if (editStopMode) {
+                    onSelectStopForEdit?.(stop);
+                  } else {
+                    onSelectStop(stop, mapSelectionMode!);
+                  }
+                },
+              }
             : undefined
         }
       >
@@ -172,7 +184,9 @@ export default function BusMap({
           <span className="font-medium text-xs">
             {stop.stop_id === focusStop?.stop_id
               ? `Your nearest stop — ${stop.stop_name}`
-              : stop.stop_name}
+              : editStopMode
+                ? `Click to change — ${stop.stop_name}`
+                : stop.stop_name}
           </span>
         </Tooltip>
       </Marker>

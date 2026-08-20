@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import SearchForm from "@/components/SearchForm";
 import SearchableSelect from "@/components/SearchableSelect";
-import { fetchRouteDetail, fetchRoutes, fetchStops, searchRoute } from "@/lib/api";
+import { fetchRouteDetail, fetchRoutes, fetchStops, searchRoute, updateStopCoordinates } from "@/lib/api";
 import { enrichRouteWithRoadGeometry, getRoadPath } from "@/lib/osrm";
 import { haversineMeters } from "@/lib/geo";
 import { RouteDetail, RouteSearchResult, RouteSummary, Stop } from "@/types/route";
@@ -36,6 +36,51 @@ export default function Home() {
   const [coordinateMode, setCoordinateMode] = useState(false);
   const [pickedPoint, setPickedPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [editStopMode, setEditStopMode] = useState(false);
+  const [editingStop, setEditingStop] = useState<Stop | null>(null);
+  const [newCoords, setNewCoords] = useState("");
+  const [stopEditError, setStopEditError] = useState<string | null>(null);
+  const [stopEditSaving, setStopEditSaving] = useState(false);
+  const [stopEditSuccess, setStopEditSuccess] = useState<string | null>(null);
+
+  function handleSelectStopForEdit(stop: Stop) {
+    setEditingStop(stop);
+    setNewCoords("");
+    setStopEditError(null);
+    setStopEditSuccess(null);
+  }
+
+  async function handleSaveStopCoords() {
+    if (!editingStop) return;
+    const match = newCoords
+      .trim()
+      .match(/^([-+]?\d+(?:\.\d+)?)\s*[,;\s]\s*([-+]?\d+(?:\.\d+)?)$/);
+    if (!match) {
+      setStopEditError("Enter coordinates as 'lat, lng', e.g. 27.7041, 85.3200");
+      return;
+    }
+    const lat = parseFloat(match[1]);
+    const lng = parseFloat(match[2]);
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      setStopEditError("Latitude must be in [-90, 90] and longitude in [-180, 180]");
+      return;
+    }
+    setStopEditSaving(true);
+    setStopEditError(null);
+    try {
+      const updated = await updateStopCoordinates(editingStop.stop_id, lat, lng);
+      setStops((prev) => prev.map((s) => (s.stop_id === updated.stop_id ? updated : s)));
+      setEditingStop(null);
+      setNewCoords("");
+      setStopEditSuccess(
+        `Updated ${updated.stop_name} to ${updated.lat.toFixed(6)}, ${updated.lng.toFixed(6)}`
+      );
+    } catch {
+      setStopEditError("Failed to update the stop. Is the backend running?");
+    } finally {
+      setStopEditSaving(false);
+    }
+  }
 
   function handlePickCoordinate(lat: number, lng: number) {
     setPickedPoint({ lat, lng });
@@ -331,6 +376,35 @@ export default function Home() {
           )}
         </div>
 
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setEditStopMode((m) => !m);
+              setEditingStop(null);
+              setStopEditError(null);
+              setStopEditSuccess(null);
+            }}
+            className={`rounded-md border font-medium py-2 text-sm transition-colors cursor-pointer ${
+              editStopMode
+                ? "bg-route-accent text-route-bg border-route-accent"
+                : "bg-route-bg border-route-line text-neutral-300 hover:border-route-accent hover:text-white"
+            }`}
+          >
+            {editStopMode ? "Stop editing bus stop" : "Change the coordinate of a bus stop"}
+          </button>
+          {editStopMode && (
+            <p className="text-xs text-route-accent">
+              Click a bus stop on the map to change its coordinates.
+            </p>
+          )}
+          {stopEditSuccess && (
+            <p className="text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-900 rounded-md px-3 py-2">
+              {stopEditSuccess}
+            </p>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={handleToggleRoutes}
@@ -469,6 +543,49 @@ export default function Home() {
         )}
       </aside>
 
+      {editingStop && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm flex flex-col gap-3 rounded-lg bg-route-panel border border-route-line p-4">
+            <div>
+              <p className="text-sm font-medium text-white">{editingStop.stop_name}</p>
+              <p className="text-xs text-neutral-400">
+                {editingStop.stop_id} · paste the coordinates you copied from the picker
+              </p>
+            </div>
+            <input
+              value={newCoords}
+              onChange={(e) => setNewCoords(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveStopCoords();
+                if (e.key === "Escape") setEditingStop(null);
+              }}
+              placeholder="e.g. 27.7041, 85.3200"
+              autoFocus
+              className="rounded-md bg-route-bg border border-route-line px-3 py-2 text-sm text-neutral-300 outline-none focus:border-route-accent"
+            />
+            {stopEditError && <p className="text-xs text-red-400">{stopEditError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleSaveStopCoords}
+                disabled={stopEditSaving}
+                className="flex-1 rounded-md bg-route-accent text-route-bg font-medium py-2 text-sm disabled:opacity-50"
+              >
+                {stopEditSaving ? "Saving…" : "Save"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingStop(null)}
+                disabled={stopEditSaving}
+                className="flex-1 rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white font-medium py-2 text-sm transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1">
         <BusMap
           result={result}
@@ -483,6 +600,8 @@ export default function Home() {
           coordinateMode={coordinateMode}
           onPickCoordinate={handlePickCoordinate}
           pickedPoint={pickedPoint}
+          editStopMode={editStopMode}
+          onSelectStopForEdit={handleSelectStopForEdit}
         />
       </div>
     </main>

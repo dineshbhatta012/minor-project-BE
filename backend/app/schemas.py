@@ -10,6 +10,11 @@ class StopOut(BaseModel):
     is_major_stop: bool
 
 
+class StopUpdateRequest(BaseModel):
+    lat: float
+    lng: float
+
+
 class RouteLegOut(BaseModel):
     route_id: str
     route_name: str

@@ -35,3 +35,17 @@ export async function searchRoute(payload: RouteSearchRequest): Promise<RouteSea
   if (!res.ok) throw new Error(`Route search failed (${res.status})`);
   return res.json();
 }
+
+export async function updateStopCoordinates(
+  stopId: string,
+  lat: number,
+  lng: number
+): Promise<Stop> {
+  const res = await fetch(`${API_URL}/stops/${encodeURIComponent(stopId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lat, lng }),
+  });
+  if (!res.ok) throw new Error(`Failed to update stop (${res.status})`);
+  return res.json();
+}
