@@ -49,3 +49,15 @@ export async function updateStopCoordinates(
   if (!res.ok) throw new Error(`Failed to update stop (${res.status})`);
   return res.json();
 }
+
+export async function removeStopFromRoute(
+  routeId: string,
+  stopId: string
+): Promise<RouteDetail> {
+  const res = await fetch(
+    `${API_URL}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}`,
+    { method: "DELETE" }
+  );
+  if (!res.ok) throw new Error(`Failed to remove stop from route (${res.status})`);
+  return res.json();
+}

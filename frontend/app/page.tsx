@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import SearchForm from "@/components/SearchForm";
 import SearchableSelect from "@/components/SearchableSelect";
-import { fetchRouteDetail, fetchRoutes, fetchStops, searchRoute, updateStopCoordinates } from "@/lib/api";
+import PlaceSearch from "@/components/PlaceSearch";
+import { Place } from "@/lib/geocode";
+import { fetchRouteDetail, fetchRoutes, fetchStops, removeStopFromRoute, searchRoute, updateStopCoordinates } from "@/lib/api";
 import { enrichRouteWithRoadGeometry, getRoadPath } from "@/lib/osrm";
 import { haversineMeters } from "@/lib/geo";
 import { RouteDetail, RouteSearchResult, RouteSummary, Stop } from "@/types/route";
@@ -33,66 +35,95 @@ export default function Home() {
   const [routeLoading, setRouteLoading] = useState(false);
   const [showSequence, setShowSequence] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
-  const [coordinateMode, setCoordinateMode] = useState(false);
-  const [pickedPoint, setPickedPoint] = useState<{ lat: number; lng: number } | null>(null);
-  const [copied, setCopied] = useState(false);
   const [editStopMode, setEditStopMode] = useState(false);
   const [editingStop, setEditingStop] = useState<Stop | null>(null);
-  const [newCoords, setNewCoords] = useState("");
-  const [stopEditError, setStopEditError] = useState<string | null>(null);
-  const [stopEditSaving, setStopEditSaving] = useState(false);
+  const [draftStop, setDraftStop] = useState<Stop | null>(null);
+  const [stopMoveSaving, setStopMoveSaving] = useState(false);
+  const [stopMoveError, setStopMoveError] = useState<string | null>(null);
   const [stopEditSuccess, setStopEditSuccess] = useState<string | null>(null);
+  const [searchedPlace, setSearchedPlace] = useState<Place | null>(null);
+  const [refreshingMap, setRefreshingMap] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+
+  // Re-fetches stops (so changed bus-stop coordinates show up) and rebuilds
+  // the currently displayed result (route detail or search) from fresh data so
+  // the rendered path reflects the latest coordinates. Leaves the left-side
+  // form untouched.
+  async function handleRefreshMap() {
+    setRefreshingMap(true);
+    setRefreshError(null);
+    try {
+      const freshStops = await fetchStops();
+      setStops(freshStops);
+      if (selectedRoute) {
+        const detail = await fetchRouteDetail(selectedRoute.route_id);
+        setSelectedRoute(detail);
+        setResult(await buildRouteResult(detail));
+      } else if (result && result.found) {
+        const resolveId = (name: string) =>
+          freshStops.find((s) => s.stop_name.toLowerCase() === name.trim().toLowerCase())
+            ?.stop_id;
+        const originId = resolveId(originName);
+        const destinationId = resolveId(destinationName);
+        if (originId && destinationId) {
+          const data = await searchRoute({
+            origin_stop_id: originId,
+            destination_stop_id: destinationId,
+          });
+          setResult(await enrichRouteWithRoadGeometry(data));
+        }
+      }
+    } catch {
+      setRefreshError("Map refresh failed. Is the backend running?");
+    } finally {
+      setRefreshingMap(false);
+    }
+  }
 
   function handleSelectStopForEdit(stop: Stop) {
     setEditingStop(stop);
-    setNewCoords("");
-    setStopEditError(null);
+    setDraftStop(null);
+    setStopMoveError(null);
     setStopEditSuccess(null);
   }
 
-  async function handleSaveStopCoords() {
-    if (!editingStop) return;
-    const match = newCoords
-      .trim()
-      .match(/^([-+]?\d+(?:\.\d+)?)\s*[,;\s]\s*([-+]?\d+(?:\.\d+)?)$/);
-    if (!match) {
-      setStopEditError("Enter coordinates as 'lat, lng', e.g. 27.7041, 85.3200");
-      return;
-    }
-    const lat = parseFloat(match[1]);
-    const lng = parseFloat(match[2]);
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      setStopEditError("Latitude must be in [-90, 90] and longitude in [-180, 180]");
-      return;
-    }
-    setStopEditSaving(true);
-    setStopEditError(null);
+  // Fired after the user drags a stop's marker to a new spot on the map. The
+  // stop isn't saved yet — we just remember the new position so the user can
+  // confirm or cancel.
+  function handleStopDragged(stop: Stop, lat: number, lng: number) {
+    setDraftStop({ ...stop, lat, lng });
+    setStopMoveError(null);
+  }
+
+  async function handleSaveStopMove() {
+    if (!editingStop || !draftStop) return;
+    setStopMoveSaving(true);
+    setStopMoveError(null);
     try {
-      const updated = await updateStopCoordinates(editingStop.stop_id, lat, lng);
+      const updated = await updateStopCoordinates(
+        editingStop.stop_id,
+        draftStop.lat,
+        draftStop.lng
+      );
       setStops((prev) => prev.map((s) => (s.stop_id === updated.stop_id ? updated : s)));
       setEditingStop(null);
-      setNewCoords("");
+      setDraftStop(null);
       setStopEditSuccess(
         `Updated ${updated.stop_name} to ${updated.lat.toFixed(6)}, ${updated.lng.toFixed(6)}`
       );
+      // Rebuild the displayed route/path so it uses the new coordinates.
+      await handleRefreshMap();
     } catch {
-      setStopEditError("Failed to update the stop. Is the backend running?");
+      setStopMoveError("Failed to update the stop. Is the backend running?");
     } finally {
-      setStopEditSaving(false);
+      setStopMoveSaving(false);
     }
   }
 
-  function handlePickCoordinate(lat: number, lng: number) {
-    setPickedPoint({ lat, lng });
-  }
-
-  function handleCopyCoordinates() {
-    if (!pickedPoint) return;
-    const text = `${pickedPoint.lat.toFixed(6)}, ${pickedPoint.lng.toFixed(6)}`;
-    navigator.clipboard?.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
+  function handleCancelStopMove() {
+    setEditingStop(null);
+    setDraftStop(null);
+    setStopMoveError(null);
   }
 
   const CATEGORY_NAMES = ["All", "Dinesh", "Dipesh", "Janak"] as const;
@@ -267,6 +298,24 @@ export default function Home() {
     }
   }
 
+  async function buildRouteResult(detail: RouteDetail): Promise<RouteSearchResult> {
+    const data: RouteSearchResult = {
+      found: true,
+      transfer_count: 0,
+      total_distance_km: detail.approx_distance_km ?? undefined,
+      legs: [
+        {
+          route_id: detail.route_id,
+          route_name: detail.route_name,
+          from_stop: detail.stops[0],
+          to_stop: detail.stops[detail.stops.length - 1],
+          path: detail.stops.map((s) => [s.lat, s.lng]),
+        },
+      ],
+    };
+    return enrichRouteWithRoadGeometry(data);
+  }
+
   async function handleSelectRoute(routeId: string) {
     setRouteLoading(true);
     setError(null);
@@ -274,26 +323,40 @@ export default function Home() {
       const detail = await fetchRouteDetail(routeId);
       setSelectedRoute(detail);
       setShowSequence(false);
-      const data: RouteSearchResult = {
-        found: true,
-        transfer_count: 0,
-        total_distance_km: detail.approx_distance_km ?? undefined,
-        legs: [
-          {
-            route_id: detail.route_id,
-            route_name: detail.route_name,
-            from_stop: detail.stops[0],
-            to_stop: detail.stops[detail.stops.length - 1],
-            path: detail.stops.map((s) => [s.lat, s.lng]),
-          },
-        ],
-      };
-      const enriched = await enrichRouteWithRoadGeometry(data);
-      setResult(enriched);
+      setResult(await buildRouteResult(detail));
     } catch {
       setError("Couldn't load that route.");
     } finally {
       setRouteLoading(false);
+    }
+  }
+
+  async function handleDeleteStopFromRoute(stopId: string, stopName: string) {
+    if (!selectedRoute) return;
+    if (selectedRoute.stops.length <= 2) {
+      setError("A route must keep at least two stops — cannot remove any more.");
+      return;
+    }
+    if (!window.confirm(`Remove "${stopName}" from ${selectedRoute.route_name}?`)) return;
+    setError(null);
+    try {
+      const updated = await removeStopFromRoute(selectedRoute.route_id, stopId);
+      setRoutes((prev) =>
+        prev.map((r) =>
+          r.route_id === updated.route_id
+            ? {
+                ...r,
+                total_stops: updated.total_stops,
+                approx_distance_km: updated.approx_distance_km,
+              }
+            : r
+        )
+      );
+      // Re-select the (updated) route so the map path and sequence refresh.
+      await handleSelectRoute(selectedRoute.route_id);
+      setShowSequence(true);
+    } catch {
+      setError("Couldn't remove that stop from the route.");
     }
   }
 
@@ -306,6 +369,26 @@ export default function Home() {
             Find a direct or single-transfer bus route across the Valley.
           </p>
         </div>
+
+        <PlaceSearch
+          onSelect={(place) => setSearchedPlace(place)}
+          disabled={stopsLoading || !!stopsError}
+        />
+        {searchedPlace && (
+          <div className="flex items-center justify-between gap-2 text-xs bg-route-panel rounded-md px-3 py-2">
+            <span className="text-neutral-300 truncate" title={searchedPlace.name}>
+              {searchedPlace.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSearchedPlace(null)}
+              className="shrink-0 text-neutral-500 hover:text-white transition-colors cursor-pointer"
+              title="Clear searched place"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {stopsError && (
           <p className="text-sm text-red-400 bg-red-950/40 border border-red-900 rounded-md px-3 py-2">
@@ -334,55 +417,11 @@ export default function Home() {
         <div className="flex flex-col gap-2">
           <button
             type="button"
-            onClick={() => setCoordinateMode((m) => !m)}
-            className={`rounded-md border font-medium py-2 text-sm transition-colors cursor-pointer ${
-              coordinateMode
-                ? "bg-route-accent text-route-bg border-route-accent"
-                : "bg-route-bg border-route-line text-neutral-300 hover:border-route-accent hover:text-white"
-            }`}
-          >
-            {coordinateMode ? "Stop picking coordinates" : "Show coordinates"}
-          </button>
-          {coordinateMode && (
-            <p className="text-xs text-route-accent">
-              Right-click anywhere on the map to pick its coordinates.
-            </p>
-          )}
-          {pickedPoint && (
-            <div className="flex items-center gap-1.5">
-              <input
-                readOnly
-                value={`${pickedPoint.lat.toFixed(6)}, ${pickedPoint.lng.toFixed(6)}`}
-                className="flex-1 rounded-md bg-route-bg border border-route-line px-3 py-2 text-sm text-neutral-300 outline-none focus:border-route-accent"
-              />
-              <button
-                type="button"
-                onClick={handleCopyCoordinates}
-                title="Copy coordinates"
-                className="rounded-md bg-route-bg border border-route-line p-2 text-neutral-300 hover:border-route-accent hover:text-white transition-colors cursor-pointer"
-              >
-                {copied ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <button
-            type="button"
             onClick={() => {
               setEditStopMode((m) => !m);
               setEditingStop(null);
-              setStopEditError(null);
+              setDraftStop(null);
+              setStopMoveError(null);
               setStopEditSuccess(null);
             }}
             className={`rounded-md border font-medium py-2 text-sm transition-colors cursor-pointer ${
@@ -391,11 +430,11 @@ export default function Home() {
                 : "bg-route-bg border-route-line text-neutral-300 hover:border-route-accent hover:text-white"
             }`}
           >
-            {editStopMode ? "Stop editing bus stop" : "Change the coordinate of a bus stop"}
+            {editStopMode ? "Stop editing bus stop" : "Edit bus stop"}
           </button>
           {editStopMode && (
             <p className="text-xs text-route-accent">
-              Click a bus stop on the map to change its coordinates.
+              Click a bus stop on the map, then drag the marker to its correct position.
             </p>
           )}
           {stopEditSuccess && (
@@ -486,11 +525,26 @@ export default function Home() {
             </p>
             <ol className="flex flex-col gap-1 max-h-72 overflow-y-auto pr-1">
               {selectedRoute.stops.map((s, i) => (
-                <li key={`${s.stop_id}-${i}`} className="flex gap-2 text-neutral-300">
+                <li key={`${s.stop_id}-${i}`} className="flex items-center gap-2 text-neutral-300 group">
                   <span className="text-neutral-500 w-6 shrink-0 text-right tabular-nums">
                     {i + 1}.
                   </span>
-                  <span>{s.stop_name}</span>
+                  <span className="flex-1 truncate">{s.stop_name}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteStopFromRoute(s.stop_id, s.stop_name)}
+                    disabled={selectedRoute.stops.length <= 2}
+                    title={`Remove ${s.stop_name} from ${selectedRoute.route_name}`}
+                    className="shrink-0 rounded p-1 text-neutral-600 opacity-0 group-hover:opacity-100 hover:text-red-400 focus:opacity-100 disabled:opacity-0 transition-colors cursor-pointer"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <line x1="10" y1="11" x2="10" y2="17" />
+                      <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                  </button>
                 </li>
               ))}
             </ol>
@@ -543,50 +597,7 @@ export default function Home() {
         )}
       </aside>
 
-      {editingStop && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-sm flex flex-col gap-3 rounded-lg bg-route-panel border border-route-line p-4">
-            <div>
-              <p className="text-sm font-medium text-white">{editingStop.stop_name}</p>
-              <p className="text-xs text-neutral-400">
-                {editingStop.stop_id} · paste the coordinates you copied from the picker
-              </p>
-            </div>
-            <input
-              value={newCoords}
-              onChange={(e) => setNewCoords(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSaveStopCoords();
-                if (e.key === "Escape") setEditingStop(null);
-              }}
-              placeholder="e.g. 27.7041, 85.3200"
-              autoFocus
-              className="rounded-md bg-route-bg border border-route-line px-3 py-2 text-sm text-neutral-300 outline-none focus:border-route-accent"
-            />
-            {stopEditError && <p className="text-xs text-red-400">{stopEditError}</p>}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleSaveStopCoords}
-                disabled={stopEditSaving}
-                className="flex-1 rounded-md bg-route-accent text-route-bg font-medium py-2 text-sm disabled:opacity-50"
-              >
-                {stopEditSaving ? "Saving…" : "Save"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditingStop(null)}
-                disabled={stopEditSaving}
-                className="flex-1 rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white font-medium py-2 text-sm transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1">
+      <div className="relative flex-1">
         <BusMap
           result={result}
           stops={stops}
@@ -597,12 +608,81 @@ export default function Home() {
           userLocation={myLocation ? { lat: myLocation.lat, lng: myLocation.lng } : null}
           focusStop={myLocation?.stop ?? null}
           walkPath={myLocation?.walkPath ?? null}
-          coordinateMode={coordinateMode}
-          onPickCoordinate={handlePickCoordinate}
-          pickedPoint={pickedPoint}
           editStopMode={editStopMode}
           onSelectStopForEdit={handleSelectStopForEdit}
+          editingStop={editingStop}
+          onStopDragged={handleStopDragged}
+          place={searchedPlace}
         />
+
+        {/* Drag-to-move helper card shown while re-positioning a bus stop */}
+        {editingStop && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1100] w-[min(92%,24rem)] rounded-lg bg-route-panel border border-route-line shadow-lg p-4">
+            {draftStop ? (
+              <>
+                <p className="text-sm font-medium text-white">{editingStop.stop_name}</p>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  New position: {draftStop.lat.toFixed(6)}, {draftStop.lng.toFixed(6)}
+                </p>
+                {stopMoveError && <p className="text-xs text-red-400 mt-2">{stopMoveError}</p>}
+                <div className="flex gap-2 mt-3">
+                  <button
+                    type="button"
+                    onClick={handleSaveStopMove}
+                    disabled={stopMoveSaving}
+                    className="flex-1 rounded-md bg-route-accent text-route-bg font-medium py-2 text-sm disabled:opacity-50 transition-colors cursor-pointer"
+                  >
+                    {stopMoveSaving ? "Saving…" : "Save new position"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelStopMove}
+                    disabled={stopMoveSaving}
+                    className="flex-1 rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white font-medium py-2 text-sm transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-neutral-300">
+                Drag the <span className="text-fuchsia-400 font-medium">violet marker</span> to the
+                correct position for <span className="font-medium text-white">{editingStop.stop_name}</span>.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Map-only refresh button (top-right of the screen) */}
+        <button
+          type="button"
+          onClick={handleRefreshMap}
+          disabled={refreshingMap}
+          title="Refresh map"
+          className="absolute top-4 right-4 z-[1100] rounded-full bg-route-panel border border-route-line p-2.5 text-neutral-300 hover:border-route-accent hover:text-white shadow-lg disabled:opacity-50 transition-colors cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={refreshingMap ? "animate-spin" : ""}
+          >
+            <path d="M23 4v6h-6" />
+            <path d="M1 20v-6h6" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+        </button>
+        {refreshError && (
+          <div className="absolute top-16 right-4 z-[1100] max-w-[240px] rounded-md bg-red-950/80 border border-red-900 px-3 py-2 text-xs text-red-300 shadow-lg">
+            {refreshError}
+          </div>
+        )}
       </div>
     </main>
   );

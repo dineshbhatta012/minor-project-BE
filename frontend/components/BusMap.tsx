@@ -4,6 +4,7 @@ import { Fragment, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import { RouteSearchResult, Stop } from "@/types/route";
+import { Place } from "@/lib/geocode";
 
 // Kathmandu Valley center, used as the default map view.
 const VALLEY_CENTER: [number, number] = [27.7041, 85.32];
@@ -40,11 +41,19 @@ const USER_LOCATION_ICON = L.divIcon({
   iconAnchor: [9, 9],
 });
 
-const PICK_MARKER_ICON = L.divIcon({
+// Large violet-ringed bus icon for the stop currently being re-positioned by
+// drag & drop while in "Edit bus stop" mode.
+const BUS_ICON_EDIT = makeBusStopIcon(32, "#a855f7");
+
+const PLACE_PIN_ICON = L.divIcon({
   className: "",
-  html: `<div style="width:14px;height:14px;border-radius:50%;background:#dc2626;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`,
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
+  html: `<div style="position:relative;width:28px;height:34px;">
+    <div style="position:absolute;left:4px;top:0;width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#8b5cf6;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>
+    <div style="position:absolute;left:9px;top:5px;width:10px;height:10px;border-radius:50%;background:#fff;"></div>
+  </div>`,
+  iconSize: [28, 34],
+  iconAnchor: [14, 32],
+  tooltipAnchor: [0, -30],
 });
 
 // Matches a route-path coordinate back to the nearest known stop (within
@@ -72,11 +81,11 @@ interface BusMapProps {
   userLocation?: { lat: number; lng: number } | null;
   focusStop?: Stop | null;
   walkPath?: [number, number][] | null;
-  coordinateMode?: boolean;
-  onPickCoordinate?: (lat: number, lng: number) => void;
-  pickedPoint?: { lat: number; lng: number } | null;
   editStopMode?: boolean;
   onSelectStopForEdit?: (stop: Stop) => void;
+  editingStop?: Stop | null;
+  onStopDragged?: (stop: Stop, lat: number, lng: number) => void;
+  place?: Place | null;
 }
 
 // Zooms the map to the displayed result whenever it changes.
@@ -92,43 +101,15 @@ function FitBounds({ result }: { result?: RouteSearchResult | null }) {
   return null;
 }
 
-// Flies the map to the focus stop whenever it changes (e.g. after picking
-// "Your location").
-function FlyTo({ target }: { target?: [number, number] | null }) {
+// Flies the map to a target point whenever it changes (e.g. after picking
+// "Your location" or searching for a place).
+function FlyTo({ target, zoom = 16 }: { target?: [number, number] | null; zoom?: number }) {
   const map = useMap();
   useEffect(() => {
     if (target) {
-      map.flyTo(target, 16, { duration: 1.2 });
+      map.flyTo(target, zoom, { duration: 1.2 });
     }
-  }, [target, map]);
-  return null;
-}
-
-// While coordinate mode is active, shows a crosshair pointer on the map and
-// reports the coordinates of a right-clicked point.
-function CoordinatePicker({
-  active,
-  onPick,
-}: {
-  active: boolean;
-  onPick: (lat: number, lng: number) => void;
-}) {
-  const map = useMap();
-  useEffect(() => {
-    const container = map.getContainer();
-    if (active) {
-      container.style.cursor = "crosshair";
-    }
-    const handler = (e: L.LeafletMouseEvent) => {
-      if (!active) return;
-      onPick(e.latlng.lat, e.latlng.lng);
-    };
-    map.on("contextmenu", handler);
-    return () => {
-      container.style.cursor = "";
-      map.off("contextmenu", handler);
-    };
-  }, [active, map, onPick]);
+  }, [target, zoom, map]);
   return null;
 }
 
@@ -142,11 +123,11 @@ export default function BusMap({
   userLocation,
   focusStop,
   walkPath,
-  coordinateMode,
-  onPickCoordinate,
-  pickedPoint,
   editStopMode,
   onSelectStopForEdit,
+  editingStop,
+  onStopDragged,
+  place,
 }: BusMapProps) {
   const selecting = mapSelectionMode !== null || editStopMode === true;
   const originStop = stops.find((s) => s.stop_name === originName);
@@ -185,7 +166,7 @@ export default function BusMap({
             {stop.stop_id === focusStop?.stop_id
               ? `Your nearest stop — ${stop.stop_name}`
               : editStopMode
-                ? `Click to change — ${stop.stop_name}`
+                ? `Click to edit — ${stop.stop_name}`
                 : stop.stop_name}
           </span>
         </Tooltip>
@@ -207,12 +188,19 @@ export default function BusMap({
 
       <FitBounds result={result} />
 
-      <CoordinatePicker
-        active={coordinateMode ?? false}
-        onPick={(lat, lng) => onPickCoordinate?.(lat, lng)}
-      />
-
       <FlyTo target={focusStop ? [focusStop.lat, focusStop.lng] : null} />
+
+      {/* Searched place pin */}
+      {place && (
+        <FlyTo target={[place.lat, place.lng]} zoom={16} />
+      )}
+      {place && (
+        <Marker position={[place.lat, place.lng]} icon={PLACE_PIN_ICON}>
+          <Tooltip direction="top" offset={[0, -30]} opacity={0.9}>
+            <span className="font-medium text-xs">{place.name}</span>
+          </Tooltip>
+        </Marker>
+      )}
 
       {/* Walking path from your location to the nearest stop (thin, dotted) */}
       {walkPath && walkPath.length >= 2 && (
@@ -231,20 +219,32 @@ export default function BusMap({
         </Marker>
       )}
 
-      {/* Point picked with "Show coordinates" (right-click) */}
-      {pickedPoint && (
-        <Marker position={[pickedPoint.lat, pickedPoint.lng]} icon={PICK_MARKER_ICON}>
-          <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
+      {/* Bus icons are shown while choosing from/to or editing on the map */}
+      {selecting &&
+        stops
+          .filter((stop) => stop.stop_id !== editingStop?.stop_id)
+          .map((stop) => stopMarker(stop, true))}
+
+      {/* The stop being re-positioned: a larger, draggable marker */}
+      {editingStop && (
+        <Marker
+          position={[editingStop.lat, editingStop.lng]}
+          icon={BUS_ICON_EDIT}
+          draggable
+          eventHandlers={{
+            dragend: (e) => {
+              const pos = (e.target as L.Marker).getLatLng();
+              onStopDragged?.(editingStop, pos.lat, pos.lng);
+            },
+          }}
+        >
+          <Tooltip direction="top" offset={[0, -8]} opacity={0.9}>
             <span className="font-medium text-xs">
-              {pickedPoint.lat.toFixed(6)}, {pickedPoint.lng.toFixed(6)}
+              Drag me to the correct position — {editingStop.stop_name}
             </span>
           </Tooltip>
         </Marker>
       )}
-
-      {/* Bus icons are shown while choosing from/to on the map */}
-      {selecting &&
-        stops.map((stop) => stopMarker(stop, true))}
 
       {/* Selected stops are still visible when no route is shown */}
       {!selecting && !result && originStop && stopMarker(originStop, false)}
