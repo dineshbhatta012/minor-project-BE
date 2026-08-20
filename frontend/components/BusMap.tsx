@@ -31,6 +31,14 @@ const BUS_ICON_ORIGIN = makeBusStopIcon(28, "#3DDC97");       // Green — origi
 const BUS_ICON_DESTINATION = makeBusStopIcon(28, "#F2A93B");   // Amber — destination
 const BUS_ICON_MAJOR = makeBusStopIcon(22, "#5DA9E9");         // Blue — major / interchange
 const BUS_ICON_DEFAULT = makeBusStopIcon(16, "#94a3b8");       // Slate — regular stop
+const BUS_ICON_NEAREST = makeBusStopIcon(32, "#2563eb");       // Blue ring — nearest stop to your location
+
+const USER_LOCATION_ICON = L.divIcon({
+  className: "",
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 6px rgba(37,99,235,0.3);"></div>`,
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+});
 
 // Matches a route-path coordinate back to the nearest known stop (within
 // ~10 m) so path markers can show stop names in their tooltips.
@@ -54,6 +62,9 @@ interface BusMapProps {
   destinationName: string;
   mapSelectionMode: "from" | "to" | null;
   onSelectStop: (stop: Stop, type: "from" | "to") => void;
+  userLocation?: { lat: number; lng: number } | null;
+  focusStop?: Stop | null;
+  walkPath?: [number, number][] | null;
 }
 
 // Zooms the map to the displayed result whenever it changes.
@@ -69,6 +80,18 @@ function FitBounds({ result }: { result?: RouteSearchResult | null }) {
   return null;
 }
 
+// Flies the map to the focus stop whenever it changes (e.g. after picking
+// "Your location").
+function FlyTo({ target }: { target?: [number, number] | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (target) {
+      map.flyTo(target, 16, { duration: 1.2 });
+    }
+  }, [target, map]);
+  return null;
+}
+
 export default function BusMap({
   result,
   stops,
@@ -76,12 +99,16 @@ export default function BusMap({
   destinationName,
   mapSelectionMode,
   onSelectStop,
+  userLocation,
+  focusStop,
+  walkPath,
 }: BusMapProps) {
   const selecting = mapSelectionMode !== null;
   const originStop = stops.find((s) => s.stop_name === originName);
   const destinationStop = stops.find((s) => s.stop_name === destinationName);
 
   function pickIcon(stop: Stop) {
+    if (stop.stop_id === focusStop?.stop_id) return BUS_ICON_NEAREST;
     if (stop.stop_id === originStop?.stop_id) return BUS_ICON_ORIGIN;
     if (stop.stop_id === destinationStop?.stop_id) return BUS_ICON_DESTINATION;
     if (stop.is_major_stop || stop.is_interchange) return BUS_ICON_MAJOR;
@@ -101,7 +128,11 @@ export default function BusMap({
         }
       >
         <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
-          <span className="font-medium text-xs">{stop.stop_name}</span>
+          <span className="font-medium text-xs">
+            {stop.stop_id === focusStop?.stop_id
+              ? `Your nearest stop — ${stop.stop_name}`
+              : stop.stop_name}
+          </span>
         </Tooltip>
       </Marker>
     );
@@ -120,6 +151,25 @@ export default function BusMap({
       />
 
       <FitBounds result={result} />
+
+      <FlyTo target={focusStop ? [focusStop.lat, focusStop.lng] : null} />
+
+      {/* Walking path from your location to the nearest stop (thin, dotted) */}
+      {walkPath && walkPath.length >= 2 && (
+        <Polyline
+          positions={walkPath}
+          pathOptions={{ color: "#64748b", weight: 3, dashArray: "2 6", opacity: 0.9 }}
+        />
+      )}
+
+      {/* The user's current location (after clicking "Your location") */}
+      {userLocation && (
+        <Marker position={[userLocation.lat, userLocation.lng]} icon={USER_LOCATION_ICON}>
+          <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
+            <span className="font-medium text-xs">Your location</span>
+          </Tooltip>
+        </Marker>
+      )}
 
       {/* Bus icons are shown while choosing from/to on the map */}
       {selecting &&

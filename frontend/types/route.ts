@@ -12,6 +12,7 @@ export interface Stop {
 export interface RouteLeg {
   route_id: string;
   route_name: string;
+  operator?: string | null;
   from_stop: Stop;
   to_stop: Stop;
   // Stop coordinates in route order from the API (the polyline is drawn

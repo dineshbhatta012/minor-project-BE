@@ -13,6 +13,7 @@ class StopOut(BaseModel):
 class RouteLegOut(BaseModel):
     route_id: str
     route_name: str
+    operator: str | None = None
     from_stop: StopOut
     to_stop: StopOut
     # Straight endpoint-to-endpoint line. The frontend replaces this with a

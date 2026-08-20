@@ -49,6 +49,7 @@ class GraphData:
     graph: nx.DiGraph
     stops_by_id: dict[str, dict]
     route_names: dict[str, str]
+    route_operators: dict[str, str]
     # ordered stop_id sequence per route — used by the BFS direct-route
     # sanity check in pathfinding.py, kept separate from the graph itself
     route_sequences: dict[str, list[str]] = field(default_factory=dict)
@@ -80,6 +81,7 @@ def build_graph_from_rows(
     graph = nx.DiGraph()
     stops_by_id = {s["stop_id"]: s for s in stops}
     route_names = {r["route_id"]: r["route_name"] for r in routes}
+    route_operators = {r["route_id"]: (r.get("operator") or "") for r in routes}
 
     for stop_id in stops_by_id:
         graph.add_node(stop_node(stop_id))
@@ -123,6 +125,7 @@ def build_graph_from_rows(
         graph=graph,
         stops_by_id=stops_by_id,
         route_names=route_names,
+        route_operators=route_operators,
         route_sequences=route_sequences,
     )
 
@@ -142,7 +145,7 @@ def _query_stops(db: Session) -> list[dict]:
 
 def _query_active_routes(db: Session) -> list[dict]:
     rows = db.execute(
-        text("SELECT route_id, route_name FROM routes WHERE status = 'active'")
+        text("SELECT route_id, route_name, operator FROM routes WHERE status = 'active'")
     ).mappings()
     return [dict(r) for r in rows]
 

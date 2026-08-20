@@ -48,6 +48,7 @@ def search_route(payload: RouteSearchRequest, db: Session = Depends(get_db)):
         RouteLegOut(
             route_id=leg["route_id"],
             route_name=leg["route_name"],
+            operator=leg.get("operator") or None,
             from_stop=StopOut(**graph_data.stops_by_id[leg["from_stop_id"]]),
             to_stop=StopOut(**graph_data.stops_by_id[leg["to_stop_id"]]),
             path=[

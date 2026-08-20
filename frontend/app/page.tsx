@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import SearchForm from "@/components/SearchForm";
 import { fetchRouteDetail, fetchRoutes, fetchStops, searchRoute } from "@/lib/api";
-import { enrichRouteWithRoadGeometry } from "@/lib/osrm";
+import { enrichRouteWithRoadGeometry, getRoadPath } from "@/lib/osrm";
+import { haversineMeters } from "@/lib/geo";
 import { RouteDetail, RouteSearchResult, RouteSummary, Stop } from "@/types/route";
 
 // Leaflet touches `window`, so the map must load client-side only.
@@ -31,6 +32,79 @@ export default function Home() {
   const [routeLoading, setRouteLoading] = useState(false);
   const [showSequence, setShowSequence] = useState(false);
 
+  const [myLocation, setMyLocation] = useState<{
+    lat: number;
+    lng: number;
+    stop: Stop;
+    walkMeters: number;
+    walkPath: [number, number][];
+  } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  function findNearestStop(lat: number, lng: number): { stop: Stop; meters: number } | null {
+    let best: Stop | null = null;
+    let bestMeters = Infinity;
+    for (const s of stops) {
+      const meters = haversineMeters(lat, lng, s.lat, s.lng);
+      if (meters < bestMeters) {
+        bestMeters = meters;
+        best = s;
+      }
+    }
+    return best ? { stop: best, meters: Math.round(bestMeters) } : null;
+  }
+
+  function handleUseMyLocation() {
+    if (!("geolocation" in navigator)) {
+      setLocationError("Geolocation isn't supported by this browser.");
+      return;
+    }
+    setLocating(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const nearest = findNearestStop(latitude, longitude);
+        setLocating(false);
+        if (!nearest) {
+          setLocationError("Couldn't find any bus stop nearby.");
+          return;
+        }
+        // Trace the actual walking route to the stop (OSRM foot profile),
+        // falling back to a straight line if the foot route isn't available.
+        const footPath =
+          (await getRoadPath(latitude, longitude, nearest.stop.lat, nearest.stop.lng, "foot")) ??
+          [
+            [latitude, longitude],
+            [nearest.stop.lat, nearest.stop.lng],
+          ];
+        setMyLocation({
+          lat: latitude,
+          lng: longitude,
+          stop: nearest.stop,
+          walkMeters: nearest.meters,
+          walkPath: footPath,
+        });
+        setOriginName(nearest.stop.stop_name);
+        setMapSelectionMode(null);
+        setResult(null);
+        setSelectedRoute(null);
+        setShowSequence(false);
+        setError(null);
+      },
+      (err) => {
+        setLocating(false);
+        const message =
+          err.code === err.PERMISSION_DENIED
+            ? "Location permission denied. Allow access and try again."
+            : "Couldn't get your location. Try again.";
+        setLocationError(message);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
   function handleSelectStop(stop: Stop, type: "from" | "to") {
     if (type === "from") {
       setOriginName(stop.stop_name);
@@ -55,6 +129,8 @@ export default function Home() {
     setSelectedRoute(null);
     setShowSequence(false);
     setError(null);
+    setMyLocation(null);
+    setLocationError(null);
   }
 
   useEffect(() => {
@@ -161,6 +237,9 @@ export default function Home() {
           onSearch={handleSearch}
           onSwap={handleSwap}
           onClear={handleClear}
+          onUseMyLocation={handleUseMyLocation}
+          locating={locating}
+          locationError={locationError}
           loading={loading}
           disabled={stopsLoading || !!stopsError}
         />
@@ -261,6 +340,20 @@ export default function Home() {
               {result.transfer_count === 0 ? "Direct route" : `${result.transfer_count} transfer`}
               {result.total_distance_km ? ` · ${result.total_distance_km} km` : ""}
             </p>
+            {myLocation && (
+              <div className="flex flex-col gap-1.5 bg-route-panel rounded-md px-3 py-2 text-neutral-300">
+                <p>
+                  Go to {myLocation.stop.stop_name}, ~{myLocation.walkMeters} m from your
+                  location.
+                </p>
+                {result.legs.map((leg, i) => (
+                  <p key={leg.route_id}>
+                    {i === 0 ? "Take" : "Then take"} {leg.operator ? `${leg.operator} ` : ""}
+                    {leg.route_name} from {leg.from_stop.stop_name} to {leg.to_stop.stop_name}.
+                  </p>
+                ))}
+              </div>
+            )}
             {result.legs.map((leg) => (
               <div key={leg.route_id} className="bg-route-panel rounded-md px-3 py-2">
                 <p className="font-medium">
@@ -283,6 +376,9 @@ export default function Home() {
           destinationName={destinationName}
           mapSelectionMode={mapSelectionMode}
           onSelectStop={handleSelectStop}
+          userLocation={myLocation ? { lat: myLocation.lat, lng: myLocation.lng } : null}
+          focusStop={myLocation?.stop ?? null}
+          walkPath={myLocation?.walkPath ?? null}
         />
       </div>
     </main>

@@ -92,6 +92,7 @@ def path_to_legs(graph_data: GraphData, path: list[str]) -> tuple[list[dict], fl
                 {
                     "route_id": current_route_id,
                     "route_name": graph_data.route_names.get(current_route_id, current_route_id),
+                    "operator": graph_data.route_operators.get(current_route_id, ""),
                     "from_stop_id": current_stop_ids[0],
                     "to_stop_id": current_stop_ids[-1],
                     "stop_ids": list(current_stop_ids),

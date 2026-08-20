@@ -13,6 +13,9 @@ interface SearchFormProps {
   onSearch: (originStopId: string, destinationStopId: string) => void;
   onSwap: () => void;
   onClear: () => void;
+  onUseMyLocation: () => void;
+  locating?: boolean;
+  locationError?: string | null;
   loading?: boolean;
   disabled?: boolean;
 }
@@ -28,6 +31,9 @@ export default function SearchForm({
   onSearch,
   onSwap,
   onClear,
+  onUseMyLocation,
+  locating,
+  locationError,
   loading,
   disabled,
 }: SearchFormProps) {
@@ -52,18 +58,29 @@ export default function SearchForm({
           <label htmlFor="origin" className="text-xs uppercase tracking-wide text-neutral-400">
             From
           </label>
-          <button
-            type="button"
-            onClick={() => setMapSelectionMode(mapSelectionMode === "from" ? null : "from")}
-            disabled={disabled}
-            className={`text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer border-0 ${
-              mapSelectionMode === "from"
-                ? "bg-emerald-600 text-white"
-                : "bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent disabled:opacity-50"
-            }`}
-          >
-            Choose from map
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onUseMyLocation}
+              disabled={disabled || locating}
+              className="text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer border-0 bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white disabled:opacity-50"
+              title="Set the nearest bus stop from your current location as origin"
+            >
+              {locating ? "Locating…" : "Your location"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMapSelectionMode(mapSelectionMode === "from" ? null : "from")}
+              disabled={disabled}
+              className={`text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer border-0 ${
+                mapSelectionMode === "from"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent disabled:opacity-50"
+              }`}
+            >
+              Choose from map
+            </button>
+          </div>
         </div>
         <input
           id="origin"
@@ -74,6 +91,9 @@ export default function SearchForm({
           disabled={disabled}
           className="rounded-md bg-route-bg border border-route-line px-3 py-2 text-sm outline-none focus:border-route-accent disabled:opacity-50"
         />
+        {locationError && (
+          <p className="text-xs text-red-400">{locationError}</p>
+        )}
       </div>
 
       {/* Swap origin ↔ destination */}
