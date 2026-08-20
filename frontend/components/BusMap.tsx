@@ -219,8 +219,10 @@ export default function BusMap({
         </Marker>
       )}
 
-      {/* Bus icons are shown while choosing from/to or editing on the map */}
-      {selecting &&
+      {/* Bus icons are shown while choosing from/to or editing on the map,
+          but hidden whenever a route is displayed (except in edit mode,
+          where the user still needs to click a stop to re-position it) */}
+      {selecting && (!result || editStopMode) &&
         stops
           .filter((stop) => stop.stop_id !== editingStop?.stop_id)
           .map((stop) => stopMarker(stop, true))}
