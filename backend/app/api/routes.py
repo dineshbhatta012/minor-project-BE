@@ -113,7 +113,8 @@ def remove_stop_from_route(route_id: str, stop_id: str, db: Session = Depends(ge
 
     remaining = db.execute(
         text(
-            "SELECT stop_id, lat, lng FROM route_stops rs JOIN stops s ON s.stop_id = rs.stop_id"
+            "SELECT rs.stop_id, s.lat, s.lng FROM route_stops rs"
+            " JOIN stops s ON s.stop_id = rs.stop_id"
             " WHERE rs.route_id = :route_id ORDER BY rs.sequence_no"
         ),
         {"route_id": route_id},

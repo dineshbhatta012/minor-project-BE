@@ -1,4 +1,80 @@
 route_id,stop_id,sequence_no,stop_name
+R-NY-03,S0372,1,Pepsicola
+R-NY-03,S0159,2,Jadibuti
+R-NY-03,S0107,3,Koteshwor
+R-NY-03,TBD-CHOOSE,4,New Baneshwor
+R-NY-03,S0185,5,Thapathali
+R-NY-03,S0056,6,Tripureshwor
+R-NY-03,S0276,7,Teku
+R-NY-03,S0023,8,Kalimati
+R-NY-03,TBD-CHOOSE,9,Balkhu
+R-NY-03,TBD-CHOOSE,10,Sanepa
+R-NY-03,S0214,11,Ekantakuna
+R-NY-03,S0103,12,Jawalakhel
+R-NY-03,S0234,13,Pulchowk
+R-NY-03,S0063,14,Kupondole
+R-NY-03,S0185,15,Thapathali
+R-NY-03,TBD-CHOOSE,16,Maitighar
+R-NY-03,TBD-CHOOSE,17,New Baneshwor
+R-NY-03,S0107,18,Koteshwor
+R-NY-03,S0159,19,Jadibuti
+R-NY-03,S0372,20,Pepsicola
+R-NY-04,S0373,1,Babachowk
+R-NY-04,S0374,2,Gothatar Height/Tarigaon
+R-NY-04,S0375,3,Gothatar Chowk
+R-NY-04,S0376,4,Gothatar School
+R-NY-04,S0377,5,Khahare
+R-NY-04,S0378,6,Khahare Chowk
+R-NY-04,S0159,7,Jadibuti
+R-NY-04,S0107,8,Koteshwor
+R-NY-04,TBD-CHOOSE,9,Tinkune
+R-NY-04,S0029,10,Minbhawan
+R-NY-04,S0127,11,Shantinagar
+R-NY-04,TBD-CHOOSE,12,New Baneshwor
+R-NY-04,S0033,13,Bijulibazar
+R-NY-04,TBD-CHOOSE,14,Babarmahal
+R-NY-04,TBD-CHOOSE,15,Maitighar
+R-NY-04,TBD-CHOOSE,16,Singha Durbar
+R-NY-04,TBD-CHOOSE,17,Anamnagar/Hanumansthan
+R-NY-04,S0066,18,Padmodaya/Pradarshani Marg
+R-NY-04,S0031,19,Bagbazar
+R-NY-04,S0005,20,Putalisadak
+R-NY-05,S0383,1,Harharmahadev
+R-NY-05,S0384,2,Kandaghari
+R-NY-05,S0159,3,Jadibuti
+R-NY-05,S0107,4,Koteshwor
+R-NY-05,TBD-CHOOSE,5,New Baneshwor
+R-NY-05,TBD-CHOOSE,6,Maitighar
+R-NY-05,S0185,7,Thapathali
+R-NY-05,S0056,8,Tripureshwor
+R-NY-05,S0276,9,Teku
+R-NY-05,S0023,10,Kalimati
+R-NY-05,TBD-CHOOSE,11,Balkhu
+R-NY-06,S0134,1,Gopi Krishna
+R-NY-06,S0030,2,Chakrapath
+R-NY-06,S0337,3,Maharajgunj
+R-NY-06,S0068,4,Baluwatar
+R-NY-06,S0123,5,Naxal
+R-NY-06,S0005,6,Putalisadak
+R-NY-06,S0196,7,Anamnagar
+R-NY-06,S0209,8,Singha Durbar East
+R-NY-06,S0379,9,Hanumansthan
+R-NY-06,S0108,10,Thapagaun
+R-NY-06,TBD-CHOOSE,11,New Baneshwor
+R-NY-06,S0107,12,Koteshwor
+R-NY-06,TBD-CHOOSE,13,Balkumari
+R-NY-07,S0134,1,Gopi Krishna
+R-NY-07,S0217,2,Sukedhara
+R-NY-07,S0030,3,Chakrapath South
+R-NY-07,S0102,4,New Plaza
+R-NY-07,S0382,5,Baidya Khana
+R-NY-07,S0196,6,Anamnagar
+R-NY-07,S0209,7,Singha Durbar East Gate
+R-NY-07,S0379,8,Hanumansthan
+R-NY-07,S0108,9,Thapagaun
+R-NY-07,TBD-CHOOSE,10,New Baneshwor
+R-NY-07,TBD-CHOOSE,11,Tinkune
+R-NY-07,S0107,12,Koteshwor
 R-SAJHA-01,S0112,1,Lagankhel Stop
 R-SAJHA-01,S0213,2,Kumaripati
 R-SAJHA-01,S0175,3,Jawalakhel
@@ -317,22 +393,20 @@ R2295768,S0058,12,Natole
 R2295768,S0226,13,Gahabahal
 R2295768,S0227,14,Mahapal
 R2295768,S0154,15,Mangalbazar
-R2295902,S0076,1,Sundhara Stop
-R2295902,S0067,2,Shahid Gate
-R2295902,S0086,3,Tourism Board Stop
-R2295902,S0066,4,Bhrikuti Mandap Stop
-R2295902,S0102,5,New Plaza Stop
-R2295902,S0196,6,Anamnagar Stop
-R2295902,S0209,7,Singha Durbar East Stop
-R2295902,S0015,8,Hanumanthan Stop
-R2295902,S0033,9,Bijulibazar Stop
-R2295902,S0108,10,Thapagaun Stop
-R2295902,S0075,11,New Baneshwor West
-R2295902,S0091,12,Naya Baneshwor Tempo Stop
-R2295902,S0167,13,ShivaDarshan Hall Stop
-R2295902,S0180,14,Sangam Chowk Stop
-R2295902,S0115,15,Milan Chowk Stop
-R2295902,S0006,16,KattyaniChowk Stop
+R2295902,S0076,1,
+R2295902,S0086,2,
+R2295902,S0066,3,
+R2295902,S0102,4,
+R2295902,S0196,5,
+R2295902,S0209,6,
+R2295902,S0015,7,
+R2295902,S0033,8,
+R2295902,S0108,9,
+R2295902,S0075,10,
+R2295902,S0167,11,
+R2295902,S0180,12,
+R2295902,S0115,13,
+R2295902,S0006,14,
 R2295903,S0076,1,Sundhara Stop
 R2295903,S0100,2,RNAC stop
 R2295903,S0171,3,Bir Hospital
@@ -1601,14 +1675,14 @@ R3204165,S0013,12,Ratna Park
 R3211395,S0161,1,Bhaktapur Bus Park
 R3211395,S0199,2,Byasi Stop
 R3211395,S0089,3,Suryabinayek
-R3211395,S0014,4,Sallaghari North
+R3211395,S0095,4,Sallaghari Stop
 R3211395,S0202,5,Srijananagar
 R3211395,S0325,6,Gatthaghar
 R3211395,S0022,7,Lokanthali North
 R3211395,S0159,8,Jadibuti
 R3211395,S0107,9,Koteshwor Stop
 R3211395,S0017,10,Tinkune Stop
-R3211395,S0075,11,New Baneshwor West
+R3211395,S0304,11,Naya Baneshwor Chowk
 R3211395,S0097,12,Maitighar
 R3211395,S0088,13,Bhadrakali
 R3211395,S0013,14,Ratna Park
@@ -1637,7 +1711,7 @@ R3214592,S0107,1,Koteshwor Stop
 R3214592,S0017,2,Tinkune Stop
 R3214592,S0127,3,Shantinagar Stop
 R3214592,S0029,4,Minbhawan
-R3214592,S0075,5,New Baneshwor West
+R3214592,S0304,5,Naya Baneshwor Chowk
 R3214592,S0028,6,Babarmahal
 R3214592,S0097,7,Maitighar
 R3214592,S0185,8,Thapathali
@@ -1671,12 +1745,13 @@ R3229256,S0339,8,Hattisar
 R3229256,S0005,9,Putalisadak Stop
 R3229256,S0013,10,Ratna Park
 R3229256,S0067,11,Shahid Gate
-R3229256,S0056,12,Tripureshwor
-R3229256,S0276,13,Tek (Teku)
-R3229256,S0023,14,Kalimati
-R3229256,S0271,15,Soalteemode West
-R3229256,S0130,16,Kalanki
-R3229256,S0291,17,Naikap Bus Stop
+R3229256,S0385,12,
+R3229256,S0056,13,Tripureshwor
+R3229256,S0276,14,Tek (Teku)
+R3229256,S0023,15,Kalimati
+R3229256,S0271,16,Soalteemode West
+R3229256,S0130,17,Kalanki
+R3229256,S0291,18,Naikap Bus Stop
 R3232098,S0336,1,Narayangopal Chowk
 R3232098,S0124,2,Teaching Hospital stop
 R3232098,S0082,3,Panipokhari stop
@@ -1708,7 +1783,7 @@ R3236048,S0113,12,Balaju
 R3236048,S0349,13,Macchapokhari
 R3236048,S0174,14,Naya Bus Park
 R3255302,S0089,1,Suryabinayek
-R3255302,S0014,2,Sallaghari North
+R3255302,S0095,2,Sallaghari Stop
 R3255302,S0325,3,Gatthaghar
 R3255302,S0022,4,Lokanthali North
 R3255302,S0107,5,Koteshwor Stop
@@ -1733,7 +1808,7 @@ R3271482,S0127,10,Shantinagar Stop
 R3271482,S0017,11,Tinkune Stop
 R3271482,S0107,12,Koteshwor Stop
 R3277397,S0089,1,Suryabinayek
-R3277397,S0014,2,Sallaghari North
+R3277397,S0095,2,Sallaghari Stop
 R3277397,S0022,3,Lokanthali North
 R3277397,S0107,4,Koteshwor Stop
 R3277397,S0053,5,Gairigaun Stop
@@ -1817,79 +1892,3 @@ R3351750,S0338,6,Kamalpokhari
 R3351750,S0339,7,Hattisar
 R3351750,S0031,8,Bagbazar Stop
 R3351750,S0013,9,Ratna Park
-R-NY-03,S0372,1,Pepsicola
-R-NY-03,S0159,2,Jadibuti
-R-NY-03,S0107,3,Koteshwor
-R-NY-03,TBD-CHOOSE,4,New Baneshwor
-R-NY-03,S0185,5,Thapathali
-R-NY-03,S0056,6,Tripureshwor
-R-NY-03,S0276,7,Teku
-R-NY-03,S0023,8,Kalimati
-R-NY-03,TBD-CHOOSE,9,Balkhu
-R-NY-03,TBD-CHOOSE,10,Sanepa
-R-NY-03,S0214,11,Ekantakuna
-R-NY-03,S0103,12,Jawalakhel
-R-NY-03,S0234,13,Pulchowk
-R-NY-03,S0063,14,Kupondole
-R-NY-03,S0185,15,Thapathali
-R-NY-03,TBD-CHOOSE,16,Maitighar
-R-NY-03,TBD-CHOOSE,17,New Baneshwor
-R-NY-03,S0107,18,Koteshwor
-R-NY-03,S0159,19,Jadibuti
-R-NY-03,S0372,20,Pepsicola
-R-NY-04,S0373,1,Babachowk
-R-NY-04,S0374,2,Gothatar Height/Tarigaon
-R-NY-04,S0375,3,Gothatar Chowk
-R-NY-04,S0376,4,Gothatar School
-R-NY-04,S0377,5,Khahare
-R-NY-04,S0378,6,Khahare Chowk
-R-NY-04,S0159,7,Jadibuti
-R-NY-04,S0107,8,Koteshwor
-R-NY-04,TBD-CHOOSE,9,Tinkune
-R-NY-04,S0029,10,Minbhawan
-R-NY-04,S0127,11,Shantinagar
-R-NY-04,TBD-CHOOSE,12,New Baneshwor
-R-NY-04,S0033,13,Bijulibazar
-R-NY-04,TBD-CHOOSE,14,Babarmahal
-R-NY-04,TBD-CHOOSE,15,Maitighar
-R-NY-04,TBD-CHOOSE,16,Singha Durbar
-R-NY-04,TBD-CHOOSE,17,Anamnagar/Hanumansthan
-R-NY-04,S0066,18,Padmodaya/Pradarshani Marg
-R-NY-04,S0031,19,Bagbazar
-R-NY-04,S0005,20,Putalisadak
-R-NY-05,S0383,1,Harharmahadev
-R-NY-05,S0384,2,Kandaghari
-R-NY-05,S0159,3,Jadibuti
-R-NY-05,S0107,4,Koteshwor
-R-NY-05,TBD-CHOOSE,5,New Baneshwor
-R-NY-05,TBD-CHOOSE,6,Maitighar
-R-NY-05,S0185,7,Thapathali
-R-NY-05,S0056,8,Tripureshwor
-R-NY-05,S0276,9,Teku
-R-NY-05,S0023,10,Kalimati
-R-NY-05,TBD-CHOOSE,11,Balkhu
-R-NY-06,S0134,1,Gopi Krishna
-R-NY-06,S0030,2,Chakrapath
-R-NY-06,S0337,3,Maharajgunj
-R-NY-06,S0068,4,Baluwatar
-R-NY-06,S0123,5,Naxal
-R-NY-06,S0005,6,Putalisadak
-R-NY-06,S0196,7,Anamnagar
-R-NY-06,S0209,8,Singha Durbar East
-R-NY-06,S0379,9,Hanumansthan
-R-NY-06,S0108,10,Thapagaun
-R-NY-06,TBD-CHOOSE,11,New Baneshwor
-R-NY-06,S0107,12,Koteshwor
-R-NY-06,TBD-CHOOSE,13,Balkumari
-R-NY-07,S0134,1,Gopi Krishna
-R-NY-07,S0217,2,Sukedhara
-R-NY-07,S0030,3,Chakrapath South
-R-NY-07,S0102,4,New Plaza
-R-NY-07,S0382,5,Baidya Khana
-R-NY-07,S0196,6,Anamnagar
-R-NY-07,S0209,7,Singha Durbar East Gate
-R-NY-07,S0379,8,Hanumansthan
-R-NY-07,S0108,9,Thapagaun
-R-NY-07,TBD-CHOOSE,10,New Baneshwor
-R-NY-07,TBD-CHOOSE,11,Tinkune
-R-NY-07,S0107,12,Koteshwor
