@@ -103,7 +103,7 @@ def main():
 
             ARRAY_COLS = {"aliases", "unverified_fields"}
 
-            with open(csv_path, encoding="utf-8", newline='') as inf:
+            with open(csv_path, encoding="utf-8-sig", newline='') as inf:
                 reader = csv.reader(inf)
                 try:
                     header = next(reader)
