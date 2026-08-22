@@ -2,24 +2,21 @@ route_id,route_name,vehicle_type,operator,total_stops,approx_distance_km,status
 R2988993,Ratnapark - Dhulikhel,bus,Mayur Yatayat,44,34.94,active
 R2988891,Panauti - Ratnapark,bus,,43,36.82,active
 R2988983,Chyamasingh to Ratnapark,bus,Madhya Upatyaka Bus Samiti,42,20.46,active
-R2989052,Ratna Park - Chyamasingh,bus,Madhya Upatyaka Bus Samiti,41,21.21,active
 R3014451,Bhaktapur-Purano Thimi- Purano Bus Park,bus,Bhaktapur Minibus Samiti,41,32.69,active
 R2988890,Bagbazaar-Kamalbinayak,bus,Bhaktapur Minibus Samiti,38,18.62,active
-R2909799,Kamalbinayak-Ratnapark,bus,Bhaktapur Minibus Samiti,38,18.3,active
+R2909799,Kamalbinayak-Ratnapark,bus,Bhaktapur Minibus Samiti,38,18.30,active
 R2988893,Ratnapark-Changu,bus,Bhaktapur Minibus Samiti,37,23.18,active
-R2989027,Changu-Ratnapark,bus,Bhaktapur Minibus Samiti,37,22.85,active
 R2988806,Ratnapark-Dadhikot,bus,,35,19.03,active
 R3102605,Swyambhu-Chakrapath parikrama,bus,Mahanagar Yatayat,36,25.38,active
-R2301263,Chakrapath Parikrama,bus,Mahanagar Yatayat,35,29.32,active
-R2301306,Balkumari-Gopi Krishna,bus,Nepal Yatayat,33,15.4,active
+R2301306,Balkumari-Gopi Krishna,bus,Nepal Yatayat,33,15.40,active
 R3071562,"Naya Baneshwor, Koteshwor, Satdobato, Lagankhel, Jaulakhel, Kupandol, Naya Baneshwor",tempo,,33,14.72,active
 R2975649,Purano Buspark - Chabahil,bus,,30,14.19,active
 R2302674,Naikap-Koteshwor,bus,Digo Yatayat,29,15.82,active
-R2988809,Purano Bus Park - Sakhu,bus,Panchpokhari Yatayat,31,24.0,active
+R2988809,Purano Bus Park - Sakhu,bus,Panchpokhari Yatayat,31,24.00,active
 R3020244,Attrekhle-Purano Buspark,bus,Juneli Yatayat,28,15.87,active
 R2276770,Purano Bus Park-Thimi,microbus,,25,11.91,active
 R2989036,Purano Bus Park - jorpati,bus,Gokarneshwor Yatayat,27,13.89,active
-R3070344,Kausaltar-Naikap,bus,Chandragiri Yatayat,25,15.4,active
+R3070344,Kausaltar-Naikap,bus,Chandragiri Yatayat,25,15.40,active
 R2295974,Purano Bus Park-Nakhipot,microbus,,23,16.49,active
 R-SAJHA-02,Lagankhel-Budhanilkantha,bus,Sajha Yatayat,23,25.36,active
 R2294152,Ratna Park-Lagankhel,microbus,Bagmati Yatayat,21,5.92,active
@@ -45,7 +42,7 @@ R3236048,Koteshwor - New Bus Park,microbus,,14,16.31,active
 R3218289,Jorpati - Ekantakuna,microbus,,14,14.87,active
 R3211395,Bhaktapur - Ratna Park,bus,,14,16.77,active
 R-SAJHA-08,Bungamati-Jamal,bus,Sajha Yatayat,13,12.28,active
-R3214592,Koteshwor - Kalanki (via New Baneshwor),microbus,,13,9.4,active
+R3214592,Koteshwor - Kalanki (via New Baneshwor),microbus,,13,9.40,active
 R3255302,Suryabinayak - Kirtipur,bus,,13,21.47,active
 R3203278,Airport - Ratna Park,microbus,,12,9.82,active
 R3271482,Lagankhel - Koteshwor,microbus,,12,8.32,active
@@ -58,7 +55,7 @@ R3288696,Lagankhel - Ratna Park,microbus,,8,5.95,active
 R3342445,Baluwatar - Naxal - Putalisadak Loop,microbus,,8,5.95,active
 R3319772,Thamel - Sorhakhutte Feeder,microbus,,8,3.64,active
 R3297080,Lagankhel - Balkhu,microbus,,7,6.29,active
-R2301161,MAV School-Purano Buspark,microbus,,26,10.1,pending_release
+R2301161,MAV School-Purano Buspark,microbus,,26,10.10,pending_release
 R3072924,Matathirtha-Naikap-Thapathali-KrishnaPauroti-Ratopul-Chabahil-kapan,bus,Om Janata Yatayat;Chandragiri Yatayat,24,16.07,pending_release
 R3070262,Kalanki-Pepsacola,bus,Riddhi Siddhi Yatayat,22,13.34,pending_release
 R3070257,kalanki-Balkumari,bus,Digo Yatayat,21,12.02,pending_release
@@ -71,12 +68,10 @@ R2276999,Shobhabhagwati-Koteshwore,tempo,Digo Yatayat,19,10.33,pending_release
 R2295903,Sundhara-Milanchowk-KattyaniChowk,tempo,Samakhusi Yatayat,19,5.29,pending_release
 R2295986,Sundhara-Shankhamul,microbus,Samakhusi Yatayat,17,5.58,pending_release
 R3020174,Gothatar-Purano Buspark,bus,Juneli Yatayat,19,13.77,pending_release
-R2301206,Shivapuri-Purano Bus Park,microbus,Basuki Yatayat,17,11.56,pending_release
 R2301358,Teaching-NayaBaneshwar,microbus,Tarakeshwor Yatayat,17,12.94,pending_release
-R2323381,Budhanilkantha School- Ratna Park,microbus,Dhumrabaraha Yatayat,17,10.09,pending_release
 R2295734,Ratna Park-Budhanilkantha School,microbus,Dhumrabaraha Yatayat,16,9.73,pending_release
 R2277212,Koteshwor - Ratna Park,tempo,Digo Yatayat,15,8.88,pending_release
-R2989012,Ratna Park - Daksinkali,bus,,13,13.3,pending_release
+R2989012,Ratna Park - Daksinkali,bus,,13,13.30,pending_release
 R2989074,Sakhu - Purano Bus Park,bus,Panchpokhari Yatayat,17,15.89,pending_release
 R3020212,Dhokashi- Chobar gate- Ratnapark,bus;microbus,Samyukta Yatayat,13,8.45,pending_release
 R2301357,Naya Baneshwor-Teaching,microbus,Tarakeshwor Yatayat,13,5.22,pending_release
