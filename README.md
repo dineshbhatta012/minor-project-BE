@@ -67,8 +67,7 @@ npm install
 cp .env.local.example .env.local
 
 # Run the development server
-npm run dev
-```
+ npm run dev
 - **Web App URL:** [http://localhost:3000](http://localhost:3000)
 
 ---

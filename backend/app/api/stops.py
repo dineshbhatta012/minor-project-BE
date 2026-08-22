@@ -24,6 +24,7 @@ def list_stops(db: Session = Depends(get_db)):
             SELECT stop_id, stop_name, lat, lng, is_interchange, is_major_stop
             FROM stops
             WHERE status = 'active'
+              AND NULLIF(TRIM(stop_name), '') IS NOT NULL
             ORDER BY stop_name
             """
         )
@@ -47,6 +48,7 @@ def nearest_stops(
             SELECT stop_id, stop_name, lat, lng, is_interchange, is_major_stop
             FROM stops
             WHERE status = 'active'
+              AND NULLIF(TRIM(stop_name), '') IS NOT NULL
             ORDER BY geom <-> ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
             LIMIT :limit
             """

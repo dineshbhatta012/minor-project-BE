@@ -34,13 +34,6 @@ const BUS_ICON_MAJOR = makeBusStopIcon(22, "#5DA9E9");         // Blue — major
 const BUS_ICON_DEFAULT = makeBusStopIcon(16, "#94a3b8");       // Slate — regular stop
 const BUS_ICON_NEAREST = makeBusStopIcon(32, "#2563eb");       // Blue ring — nearest stop to your location
 
-const USER_LOCATION_ICON = L.divIcon({
-  className: "",
-  html: `<div style="width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid #fff;box-shadow:0 0 0 6px rgba(37,99,235,0.3);"></div>`,
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
-});
-
 // Large violet-ringed bus icon for the stop currently being re-positioned by
 // drag & drop while in "Edit bus stop" mode.
 const BUS_ICON_EDIT = makeBusStopIcon(32, "#a855f7");
@@ -98,6 +91,31 @@ function FitBounds({ result }: { result?: RouteSearchResult | null }) {
       map.fitBounds(L.latLngBounds(points.map(([lat, lng]) => [lat, lng])));
     }
   }, [result, map]);
+  return null;
+}
+
+// Keeps the map centered on the stop being edited instead of zooming out.
+function FitBoundsIfNotEditing({ result, editStopMode }: { result?: RouteSearchResult | null; editStopMode?: boolean }) {
+  const map = useMap();
+  useEffect(() => {
+    if (editStopMode) return;
+    if (!result?.found || !result.legs.length) return;
+    const points = result.legs.flatMap((leg) => leg.path);
+    if (points.length > 0) {
+      map.fitBounds(L.latLngBounds(points.map(([lat, lng]) => [lat, lng])));
+    }
+  }, [result, map]);
+  return null;
+}
+
+// Flies the map to the stop currently being edited whenever it changes.
+function FlyToEditingStop({ editingStop }: { editingStop?: Stop | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (editingStop) {
+      map.flyTo([editingStop.lat, editingStop.lng], map.getZoom(), { duration: 1.2 });
+    }
+  }, [editingStop, map]);
   return null;
 }
 
@@ -186,7 +204,9 @@ export default function BusMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      <FitBounds result={result} />
+      <FitBoundsIfNotEditing result={result} editStopMode={editStopMode} />
+
+      <FlyToEditingStop editingStop={editingStop} />
 
       <FlyTo target={focusStop ? [focusStop.lat, focusStop.lng] : null} />
 

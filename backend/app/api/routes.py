@@ -33,6 +33,7 @@ def _fetch_route_detail(db: Session, route_id: str) -> RouteDetailOut | None:
             FROM route_stops rs
             JOIN stops s ON s.stop_id = rs.stop_id
             WHERE rs.route_id = :route_id
+              AND NULLIF(TRIM(s.stop_name), '') IS NOT NULL
             ORDER BY rs.sequence_no
             """
         ),

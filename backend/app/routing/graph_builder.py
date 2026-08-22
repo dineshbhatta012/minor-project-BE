@@ -137,6 +137,7 @@ def _query_stops(db: Session) -> list[dict]:
             SELECT stop_id, stop_name, lat, lng, is_interchange, is_major_stop
             FROM stops
             WHERE status = 'active'
+              AND NULLIF(TRIM(stop_name), '') IS NOT NULL
             """
         )
     ).mappings()
