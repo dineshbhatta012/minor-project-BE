@@ -10,10 +10,19 @@ class StopOut(BaseModel):
     is_major_stop: bool
 
 
+class StopCreateRequest(BaseModel):
+    stop_name: str
+    lat: float
+    lng: float
+    is_interchange: bool = False
+    is_major_stop: bool = False
+
 class StopUpdateRequest(BaseModel):
     lat: float
     lng: float
 
+class RouteStopsUpdateRequest(BaseModel):
+    stop_ids: list[str]
 
 class RouteLegOut(BaseModel):
     route_id: str

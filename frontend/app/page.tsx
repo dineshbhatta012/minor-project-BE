@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import SearchForm from "@/components/SearchForm";
 import SearchableSelect from "@/components/SearchableSelect";
 import PlaceSearch from "@/components/PlaceSearch";
 import { Place } from "@/lib/geocode";
-import { fetchRouteDetail, fetchRoutes, fetchStops, removeStopFromRoute, searchRoute, updateStopCoordinates } from "@/lib/api";
+import { fetchRouteDetail, fetchRoutes, fetchStops, removeStopFromRoute, searchRoute, updateStopCoordinates, updateRouteStops, createStop } from "@/lib/api";
 import { enrichRouteWithRoadGeometry, getRoadPath } from "@/lib/osrm";
 import { haversineMeters } from "@/lib/geo";
 import { RouteDetail, RouteSearchResult, RouteSummary, Stop } from "@/types/route";
+import type { LegWaypoints } from "@/components/BusMap";
 
 // Leaflet touches `window`, so the map must load client-side only.
 const BusMap = dynamic(() => import("@/components/BusMap"), { ssr: false });
@@ -36,6 +37,7 @@ export default function Home() {
   const [showSequence, setShowSequence] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [editStopMode, setEditStopMode] = useState(false);
+  const [addStopMode, setAddStopMode] = useState(false);
   const [editingStop, setEditingStop] = useState<Stop | null>(null);
   const [draftStop, setDraftStop] = useState<Stop | null>(null);
   const [stopMoveSaving, setStopMoveSaving] = useState(false);
@@ -44,6 +46,20 @@ export default function Home() {
   const [searchedPlace, setSearchedPlace] = useState<Place | null>(null);
   const [refreshingMap, setRefreshingMap] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
+
+  // ── Edit-route state ──────────────────────────────────────────────────────
+  const [editRouteMode, setEditRouteMode] = useState(false);
+  // User-placed via waypoints for each leg (lat/lng tuples)
+  const [legWaypoints, setLegWaypoints] = useState<LegWaypoints[]>([]);
+  // The visually updated (re-routed) result while editing; null = no changes yet
+  const [draftResult, setDraftResult] = useState<RouteSearchResult | null>(null);
+  const [rerouteLoading, setRerouteLoading] = useState(false);
+  const [rerouteError, setRerouteError] = useState<string | null>(null);
+  // Debounce timer for OSRM re-route calls
+  const rerouteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [waypointDeleteMode, setWaypointDeleteMode] = useState(false);
+  const [selectedWaypointsToDelete, setSelectedWaypointsToDelete] = useState<{ legIndex: number; wpIndex: number }[]>([]);
 
   // Re-fetches stops (so changed bus-stop coordinates show up) and rebuilds
   // the currently displayed result (route detail or search) from fresh data so
@@ -124,6 +140,201 @@ export default function Home() {
     setEditingStop(null);
     setDraftStop(null);
     setStopMoveError(null);
+  }
+
+  const [pendingNewStopCoords, setPendingNewStopCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [pendingNewStopName, setPendingNewStopName] = useState("");
+
+  function handleAddStopMapClick(lat: number, lng: number) {
+    setPendingNewStopCoords({ lat, lng });
+    setPendingNewStopName("");
+  }
+
+  async function handleConfirmAddStop() {
+    if (!pendingNewStopCoords || !pendingNewStopName.trim()) {
+      return;
+    }
+    setStopMoveSaving(true);
+    setStopMoveError(null);
+    try {
+      const newStop = await createStop({
+        stop_name: pendingNewStopName.trim(),
+        lat: pendingNewStopCoords.lat,
+        lng: pendingNewStopCoords.lng,
+      });
+      setStops((prev) => [...prev, newStop].sort((a, b) => a.stop_name.localeCompare(b.stop_name)));
+      setStopEditSuccess(`Added new bus stop: ${newStop.stop_name}`);
+      setAddStopMode(false);
+      setPendingNewStopCoords(null);
+    } catch {
+      setStopMoveError("Failed to add bus stop. Is the backend running?");
+    } finally {
+      setStopMoveSaving(false);
+    }
+  }
+
+  function handleCancelAddStop() {
+    setPendingNewStopCoords(null);
+    setPendingNewStopName("");
+    setAddStopMode(false);
+  }
+
+  // ── Edit-route handlers ────────────────────────────────────────────────────
+
+  function handleToggleEditRoute() {
+    if (editRouteMode) {
+      // Leaving edit mode without saving → discard draft
+      setEditRouteMode(false);
+      setLegWaypoints([]);
+      setDraftResult(null);
+      setRerouteError(null);
+      setWaypointDeleteMode(false);
+      setSelectedWaypointsToDelete([]);
+    } else {
+      if (!result?.found) return; // nothing to edit
+      setEditRouteMode(true);
+      setLegWaypoints([]);
+      setDraftResult(null);
+      setRerouteError(null);
+      setWaypointDeleteMode(false);
+      setSelectedWaypointsToDelete([]);
+    }
+  }
+
+  // Re-routes a single leg through its waypoints via OSRM and returns the
+  // updated path.  Falls back to the original path on failure.
+  async function rerouteLeg(
+    legIndex: number,
+    waypoints: [number, number][],
+    baseResult: RouteSearchResult
+  ): Promise<RouteSearchResult> {
+    const leg = baseResult.legs[legIndex];
+    const stopCoords: [number, number][] = leg.stopCoords ?? leg.path;
+
+    // Build the full waypoint sequence: origin stop → user waypoints → dest stop
+    const from = stopCoords[0];
+    const to   = stopCoords[stopCoords.length - 1];
+    const allPoints: [number, number][] = [from, ...waypoints, to];
+
+    // Build road path through all points pairwise
+    const segPromises = allPoints.slice(0, -1).map((pt, i) =>
+      getRoadPath(pt[0], pt[1], allPoints[i + 1][0], allPoints[i + 1][1])
+    );
+    const segs = await Promise.all(segPromises);
+
+    // Stitch segments, dropping duplicate junction points
+    const stitched: [number, number][] = [];
+    for (const seg of segs) {
+      if (!seg || seg.length === 0) continue;
+      const start = stitched.length > 0 ? 1 : 0;
+      for (let j = start; j < seg.length; j++) stitched.push(seg[j]);
+    }
+
+    const newPath = stitched.length >= 2 ? stitched : leg.path;
+    const updatedLegs = baseResult.legs.map((l, i) =>
+      i === legIndex ? { ...l, path: newPath } : l
+    );
+    return { ...baseResult, legs: updatedLegs };
+  }
+
+  // Called by BusMap whenever a waypoint is added / moved / removed.
+  // Debounces the OSRM call so rapid drags don't flood the API.
+  const handleWaypointChange = useCallback(
+    (legIndex: number, waypoints: [number, number][]) => {
+      // Update stored waypoints immediately
+      setLegWaypoints((prev) => {
+        const next = prev.filter((lw) => lw.legIndex !== legIndex);
+        if (waypoints.length > 0) next.push({ legIndex, waypoints });
+        return next;
+      });
+
+      if (rerouteTimer.current) clearTimeout(rerouteTimer.current);
+      rerouteTimer.current = setTimeout(async () => {
+        const base = result;
+        if (!base?.found) return;
+        setRerouteLoading(true);
+        setRerouteError(null);
+        try {
+          // Re-route the affected leg and merge into the current draft
+          setDraftResult((prev) => {
+            // We need async here, so we trigger the async work outside this setter
+            return prev;
+          });
+          const currentDraft = draftResult ?? base;
+          const updated = await rerouteLeg(legIndex, waypoints, currentDraft);
+          setDraftResult(updated);
+        } catch {
+          setRerouteError("Couldn't re-route via OSRM. Check your connection.");
+        } finally {
+          setRerouteLoading(false);
+        }
+      }, 600);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [result, draftResult]
+  );
+
+  function handleWaypointSelectToggle(legIndex: number, wpIndex: number) {
+    setSelectedWaypointsToDelete((prev) => {
+      const exists = prev.find((w) => w.legIndex === legIndex && w.wpIndex === wpIndex);
+      if (exists) {
+        return prev.filter((w) => !(w.legIndex === legIndex && w.wpIndex === wpIndex));
+      }
+      return [...prev, { legIndex, wpIndex }];
+    });
+  }
+
+  function handleConfirmDeleteSelectedWaypoints() {
+    if (selectedWaypointsToDelete.length === 0) {
+      setWaypointDeleteMode(false);
+      return;
+    }
+    
+    // Group deletions by leg
+    const deletionsByLeg = new Map<number, number[]>();
+    for (const { legIndex, wpIndex } of selectedWaypointsToDelete) {
+      if (!deletionsByLeg.has(legIndex)) deletionsByLeg.set(legIndex, []);
+      deletionsByLeg.get(legIndex)!.push(wpIndex);
+    }
+    
+    // Process deletions for each leg
+    for (const [legIndex, wpIndices] of Array.from(deletionsByLeg.entries())) {
+      const currentWaypoints = legWaypoints.find((lw) => lw.legIndex === legIndex)?.waypoints || [];
+      const updatedWaypoints = currentWaypoints.filter((_, idx) => !wpIndices.includes(idx));
+      handleWaypointChange(legIndex, updatedWaypoints);
+    }
+    
+    setWaypointDeleteMode(false);
+    setSelectedWaypointsToDelete([]);
+  }
+
+  function handleSaveEditedRoute() {
+    if (draftResult) {
+      setResult(draftResult);
+    }
+    setEditRouteMode(false);
+    setLegWaypoints([]);
+    setDraftResult(null);
+    setRerouteError(null);
+    setWaypointDeleteMode(false);
+    setSelectedWaypointsToDelete([]);
+  }
+
+  function handleCancelEditRoute() {
+    setEditRouteMode(false);
+    setLegWaypoints([]);
+    setDraftResult(null);
+    setRerouteError(null);
+    setWaypointDeleteMode(false);
+    setSelectedWaypointsToDelete([]);
+  }
+
+  function handleResetEditRoute() {
+    setLegWaypoints([]);
+    setDraftResult(null);
+    setRerouteError(null);
+    setWaypointDeleteMode(false);
+    setSelectedWaypointsToDelete([]);
   }
 
   const CATEGORY_NAMES = ["All", "Dinesh", "Dipesh", "Janak"] as const;
@@ -331,6 +542,92 @@ export default function Home() {
     }
   }
 
+  const [draggedStopIndex, setDraggedStopIndex] = useState<number | null>(null);
+  const [dragOverStopIndex, setDragOverStopIndex] = useState<number | null>(null);
+  const [addingStop, setAddingStop] = useState(false);
+
+  function handleDragStart(e: React.DragEvent, index: number) {
+    setDraggedStopIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverStopIndex(index);
+  }
+
+  async function handleDrop(e: React.DragEvent, dropIndex: number) {
+    e.preventDefault();
+    if (draggedStopIndex === null || draggedStopIndex === dropIndex || !selectedRoute) {
+      setDragOverStopIndex(null);
+      setDraggedStopIndex(null);
+      return;
+    }
+
+    const newStops = [...selectedRoute.stops];
+    const [moved] = newStops.splice(draggedStopIndex, 1);
+    newStops.splice(dropIndex, 0, moved);
+
+    const newStopIds = newStops.map((s) => s.stop_id);
+    const previousRoute = { ...selectedRoute };
+
+    // Optimistic UI update
+    setSelectedRoute({ ...selectedRoute, stops: newStops });
+    setDragOverStopIndex(null);
+    setDraggedStopIndex(null);
+    setError(null);
+
+    try {
+      const updated = await updateRouteStops(selectedRoute.route_id, newStopIds);
+      setRoutes((prev) =>
+        prev.map((r) =>
+          r.route_id === updated.route_id
+            ? {
+                ...r,
+                total_stops: updated.total_stops,
+                approx_distance_km: updated.approx_distance_km,
+                start_stop_id: updated.start_stop_id,
+                end_stop_id: updated.end_stop_id,
+              }
+            : r
+        )
+      );
+      setSelectedRoute(updated);
+      setResult(await buildRouteResult(updated));
+    } catch {
+      setError("Couldn't reorder stops.");
+      setSelectedRoute(previousRoute);
+    }
+  }
+
+  async function handleAddStopToRoute(stopId: string) {
+    if (!selectedRoute) return;
+    const newStopIds = [...selectedRoute.stops.map((s) => s.stop_id), stopId];
+    setError(null);
+    try {
+      const updated = await updateRouteStops(selectedRoute.route_id, newStopIds);
+      setRoutes((prev) =>
+        prev.map((r) =>
+          r.route_id === updated.route_id
+            ? {
+                ...r,
+                total_stops: updated.total_stops,
+                approx_distance_km: updated.approx_distance_km,
+                start_stop_id: updated.start_stop_id,
+                end_stop_id: updated.end_stop_id,
+              }
+            : r
+        )
+      );
+      setSelectedRoute(updated);
+      setResult(await buildRouteResult(updated));
+      setAddingStop(false);
+    } catch {
+      setError("Couldn't add stop to route.");
+    }
+  }
+
   async function handleDeleteStopFromRoute(stopId: string, stopName: string) {
     if (!selectedRoute) return;
     if (selectedRoute.stops.length <= 2) {
@@ -415,31 +712,118 @@ export default function Home() {
         />
 
         <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setEditStopMode((m) => !m);
-              setEditingStop(null);
-              setDraftStop(null);
-              setStopMoveError(null);
-              setStopEditSuccess(null);
-            }}
-            className={`rounded-md border font-medium py-2 text-sm transition-colors cursor-pointer ${
-              editStopMode
-                ? "bg-route-accent text-route-bg border-route-accent"
-                : "bg-route-bg border-route-line text-neutral-300 hover:border-route-accent hover:text-white"
-            }`}
-          >
-            {editStopMode ? "Stop editing bus stop" : "Edit bus stop"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setEditStopMode((m) => !m);
+                setAddStopMode(false);
+                setPendingNewStopCoords(null);
+                setEditingStop(null);
+                setDraftStop(null);
+                setStopMoveError(null);
+                setStopEditSuccess(null);
+              }}
+              className={`flex-1 rounded-md border font-medium py-2 text-sm transition-colors cursor-pointer ${
+                editStopMode
+                  ? "bg-route-accent text-route-bg border-route-accent"
+                  : "bg-route-bg border-route-line text-neutral-300 hover:border-route-accent hover:text-white"
+              }`}
+            >
+              {editStopMode ? "Stop editing bus stop" : "Edit bus stop"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAddStopMode((m) => {
+                  if (m) setPendingNewStopCoords(null);
+                  return !m;
+                });
+                setEditStopMode(false);
+                setEditingStop(null);
+                setDraftStop(null);
+                setStopMoveError(null);
+                setStopEditSuccess(null);
+              }}
+              className={`flex-1 rounded-md border font-medium py-2 text-sm transition-colors cursor-pointer ${
+                addStopMode
+                  ? "bg-emerald-500 text-white border-emerald-500"
+                  : "bg-route-bg border-route-line text-neutral-300 hover:border-emerald-400 hover:text-white"
+              }`}
+            >
+              {addStopMode ? "Cancel adding stop" : "Add a bus stop"}
+            </button>
+          </div>
           {editStopMode && (
             <p className="text-xs text-route-accent">
               Click a bus stop on the map, then drag the marker to its correct position.
             </p>
           )}
+          {addStopMode && !pendingNewStopCoords && (
+            <p className="text-xs text-emerald-400">
+              Click on the map to add at this point.
+            </p>
+          )}
+          {pendingNewStopCoords && (
+            <div className="flex flex-col gap-2 bg-emerald-950/40 border border-emerald-900 rounded-md p-3">
+              <p className="text-xs text-emerald-400 font-medium">New stop coordinates: {pendingNewStopCoords.lat.toFixed(6)}, {pendingNewStopCoords.lng.toFixed(6)}</p>
+              <input
+                type="text"
+                autoFocus
+                placeholder="Enter bus stop name"
+                className="w-full bg-route-bg border border-route-line rounded px-3 py-1.5 text-sm text-neutral-200 outline-none focus:border-emerald-500 transition-colors"
+                value={pendingNewStopName}
+                onChange={(e) => setPendingNewStopName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleConfirmAddStop();
+                  if (e.key === "Escape") handleCancelAddStop();
+                }}
+              />
+              {stopMoveError && <p className="text-xs text-red-400">{stopMoveError}</p>}
+              <div className="flex gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={handleConfirmAddStop}
+                  disabled={stopMoveSaving || !pendingNewStopName.trim()}
+                  className="flex-1 rounded border border-emerald-600 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-1.5 text-xs disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {stopMoveSaving ? "Saving..." : "Save stop"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelAddStop}
+                  className="rounded border border-route-line bg-route-bg hover:bg-neutral-800 text-neutral-300 font-medium px-3 py-1.5 text-xs transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
           {stopEditSuccess && (
             <p className="text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-900 rounded-md px-3 py-2">
               {stopEditSuccess}
+            </p>
+          )}
+        </div>
+
+        {/* ── Edit Route button ── */}
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleToggleEditRoute}
+            disabled={!result?.found && !editRouteMode}
+            title={!result?.found ? "Search for a route first" : undefined}
+            className={`rounded-md border font-medium py-2 text-sm transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+              editRouteMode
+                ? "bg-orange-500 text-white border-orange-500"
+                : "bg-route-bg border-route-line text-neutral-300 hover:border-orange-400 hover:text-white"
+            }`}
+          >
+            {editRouteMode ? "Exit route editing" : "Edit route"}
+          </button>
+          {editRouteMode && (
+            <p className="text-xs text-orange-400">
+              Drag the <span className="font-semibold">small dots</span> on the coloured path to reroute it. Double-click a waypoint to remove it.
             </p>
           )}
         </div>
@@ -523,9 +907,26 @@ export default function Home() {
             <p className="text-xs uppercase tracking-wide text-neutral-400">
               Bus stops in sequence ({selectedRoute.stops.length})
             </p>
-            <ol className="flex flex-col gap-1 max-h-72 overflow-y-auto pr-1">
+            <ol className="flex flex-col gap-1 max-h-72 overflow-y-auto pr-1 pb-1">
               {selectedRoute.stops.map((s, i) => (
-                <li key={`${s.stop_id}-${i}`} className="flex items-center gap-2 text-neutral-300 group">
+                <li 
+                  key={`${s.stop_id}-${i}`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, i)}
+                  onDragOver={(e) => handleDragOver(e, i)}
+                  onDrop={(e) => handleDrop(e, i)}
+                  className={`flex items-center gap-2 text-neutral-300 group rounded-md p-1 cursor-grab active:cursor-grabbing transition-colors ${
+                    dragOverStopIndex === i ? "bg-route-accent/20 border border-route-accent/50" : "hover:bg-route-bg/50 border border-transparent"
+                  }`}
+                >
+                  <svg className="w-4 h-4 text-neutral-500 shrink-0 opacity-50 group-hover:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="12" r="1"/>
+                    <circle cx="9" cy="5" r="1"/>
+                    <circle cx="9" cy="19" r="1"/>
+                    <circle cx="15" cy="12" r="1"/>
+                    <circle cx="15" cy="5" r="1"/>
+                    <circle cx="15" cy="19" r="1"/>
+                  </svg>
                   <span className="text-neutral-500 w-6 shrink-0 text-right tabular-nums">
                     {i + 1}.
                   </span>
@@ -547,6 +948,37 @@ export default function Home() {
                   </button>
                 </li>
               ))}
+              
+              {!addingStop ? (
+                <button
+                  type="button"
+                  onClick={() => setAddingStop(true)}
+                  className="mt-2 flex items-center justify-center gap-1.5 rounded-md border border-dashed border-route-line hover:border-route-accent text-neutral-400 hover:text-white py-1.5 text-xs transition-colors cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Add stop
+                </button>
+              ) : (
+                <div className="mt-2 flex flex-col gap-2 p-2 bg-route-bg/50 border border-route-line rounded-md">
+                  <p className="text-xs text-neutral-400">Select a stop to add to the end of the route (drag it later to reposition):</p>
+                  <SearchableSelect
+                    options={stops.map((s) => ({ value: s.stop_id, label: s.stop_name }))}
+                    value=""
+                    onChange={(val) => { if (val) handleAddStopToRoute(val); }}
+                    placeholder="Search for a stop..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAddingStop(false)}
+                    className="text-xs text-neutral-500 hover:text-white text-right"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </ol>
           </div>
         )}
@@ -599,7 +1031,7 @@ export default function Home() {
 
       <div className="relative flex-1">
         <BusMap
-          result={result}
+          result={editRouteMode && draftResult ? draftResult : result}
           stops={stops}
           originName={originName}
           destinationName={destinationName}
@@ -613,7 +1045,108 @@ export default function Home() {
           editingStop={editingStop}
           onStopDragged={handleStopDragged}
           place={searchedPlace}
+          editRouteMode={editRouteMode}
+          legWaypoints={legWaypoints}
+          onWaypointChange={handleWaypointChange}
+          waypointDeleteMode={waypointDeleteMode}
+          selectedWaypoints={selectedWaypointsToDelete}
+          onWaypointSelectToggle={handleWaypointSelectToggle}
+          addStopMode={addStopMode}
+          onMapClickForAddStop={handleAddStopMapClick}
         />
+
+        {/* ── Edit-route floating control panel ── */}
+        {editRouteMode && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1100] w-[min(92%,28rem)] rounded-xl bg-route-panel border border-orange-500/50 shadow-2xl p-4 flex flex-col gap-3">
+            {/* Header */}
+            <div className="flex items-center gap-2">
+              {/* Pencil icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              <p className="text-sm font-semibold text-orange-400">Edit Route</p>
+              {rerouteLoading && (
+                <span className="ml-auto text-xs text-neutral-400 animate-pulse">Re-routing…</span>
+              )}
+              {!rerouteLoading && draftResult && (
+                <span className="ml-auto text-xs text-emerald-400">✓ Route updated</span>
+              )}
+            </div>
+
+            {/* Instruction */}
+            <p className="text-xs text-neutral-400 leading-relaxed">
+              {waypointDeleteMode 
+                ? "Click the waypoints you want to remove, then click Delete Selected."
+                : <>Drag the <span className="text-orange-300 font-medium">small dots</span> on the coloured path to reroute it along a different road. Double-click a waypoint to remove it.</>}
+            </p>
+
+            {rerouteError && (
+              <p className="text-xs text-red-400 bg-red-950/40 border border-red-900 rounded-md px-2 py-1.5">
+                {rerouteError}
+              </p>
+            )}
+
+            {/* Action buttons */}
+            {!waypointDeleteMode ? (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveEditedRoute}
+                  disabled={!draftResult || rerouteLoading}
+                  className="flex-1 rounded-md bg-orange-500 hover:bg-orange-400 text-white font-semibold py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  Save route
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWaypointDeleteMode(true)}
+                  disabled={legWaypoints.length === 0 || rerouteLoading}
+                  className="rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-red-400 hover:text-red-300 font-medium px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  title="Select waypoints to delete"
+                >
+                  Delete waypoints
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetEditRoute}
+                  disabled={legWaypoints.length === 0 || rerouteLoading}
+                  className="rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-orange-400 hover:text-white font-medium px-3 py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  title="Reset waypoints"
+                >
+                  Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEditRoute}
+                  className="rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-red-400 hover:text-red-300 font-medium px-3 py-2 text-sm transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteSelectedWaypoints}
+                  className="flex-1 rounded-md bg-red-500 hover:bg-red-400 text-white font-semibold py-2 text-sm transition-colors cursor-pointer"
+                >
+                  Delete selected ({selectedWaypointsToDelete.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWaypointDeleteMode(false);
+                    setSelectedWaypointsToDelete([]);
+                  }}
+                  className="rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-red-400 hover:text-red-300 font-medium px-3 py-2 text-sm transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Drag-to-move helper card shown while re-positioning a bus stop */}
         {editingStop && (

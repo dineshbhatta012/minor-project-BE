@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.routing.geo import haversine_km
 from app.routing.graph_builder import refresh_graph
-from app.schemas import RouteDetailOut, RouteSummaryOut, StopOut
+from app.schemas import RouteDetailOut, RouteSummaryOut, StopOut, RouteStopsUpdateRequest
 
 router = APIRouter(prefix="/routes", tags=["routes"])
 
@@ -143,6 +143,86 @@ def remove_stop_from_route(route_id: str, stop_id: str, db: Session = Depends(ge
             " WHERE route_id = :route_id"
         ),
         {"total": len(remaining), "km": approx_km, "route_id": route_id},
+    )
+    db.commit()
+
+    refresh_graph(db)
+
+    detail = _fetch_route_detail(db, route_id)
+    if detail is None:
+        raise HTTPException(status_code=404, detail=f"Route '{route_id}' not found")
+    return detail
+
+@router.put("/{route_id}/stops", response_model=RouteDetailOut)
+def update_route_stops(
+    route_id: str,
+    payload: RouteStopsUpdateRequest = Body(...),
+    db: Session = Depends(get_db)
+):
+    """Replace the entire stop sequence for a route. Used for both reordering
+    existing stops and adding new stops."""
+    route_row = db.execute(
+        text("SELECT route_id FROM routes WHERE route_id = :route_id AND status = 'active'"),
+        {"route_id": route_id},
+    ).mappings().first()
+    if route_row is None:
+        raise HTTPException(status_code=404, detail=f"Route '{route_id}' not found")
+
+    stop_ids = payload.stop_ids
+    if len(stop_ids) < 2:
+        raise HTTPException(status_code=400, detail="A route must have at least two stops.")
+
+    # Check if all stops exist
+    existing_stops = db.execute(
+        text("SELECT stop_id, lat, lng FROM stops WHERE stop_id = ANY(:stop_ids) AND status = 'active'"),
+        {"stop_ids": stop_ids}
+    ).mappings().all()
+    
+    existing_stop_map = {s["stop_id"]: s for s in existing_stops}
+    for stop_id in stop_ids:
+        if stop_id not in existing_stop_map:
+            raise HTTPException(status_code=404, detail=f"Stop '{stop_id}' not found")
+
+    # Delete existing sequence
+    db.execute(
+        text("DELETE FROM route_stops WHERE route_id = :route_id"),
+        {"route_id": route_id}
+    )
+
+    # Insert new sequence
+    for i, stop_id in enumerate(stop_ids, start=1):
+        db.execute(
+            text(
+                "INSERT INTO route_stops (route_id, stop_id, sequence_no) "
+                "VALUES (:route_id, :stop_id, :seq)"
+            ),
+            {"route_id": route_id, "stop_id": stop_id, "seq": i}
+        )
+
+    # Calculate new distance
+    ordered_stops_coords = [existing_stop_map[sid] for sid in stop_ids]
+    approx_km = round(
+        sum(
+            haversine_km(a["lat"], a["lng"], b["lat"], b["lng"])
+            for a, b in zip(ordered_stops_coords, ordered_stops_coords[1:])
+        ),
+        3,
+    )
+
+    # Update route summary
+    db.execute(
+        text(
+            "UPDATE routes SET total_stops = :total, approx_distance_km = :km, "
+            "start_stop_id = :start_stop_id, end_stop_id = :end_stop_id "
+            "WHERE route_id = :route_id"
+        ),
+        {
+            "total": len(stop_ids),
+            "km": approx_km,
+            "start_stop_id": stop_ids[0],
+            "end_stop_id": stop_ids[-1],
+            "route_id": route_id
+        },
     )
     db.commit()
 

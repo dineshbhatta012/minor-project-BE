@@ -1,4 +1,4 @@
-route_id,stop_id,sequence_no,stop_name
+﻿route_id,stop_id,sequence_no,stop_name
 R-NY-03,S0372,1,Pepsicola
 R-NY-03,S0159,2,Jadibuti
 R-NY-03,S0107,3,Koteshwor
@@ -1297,23 +1297,22 @@ R3014451,S0013,40,Ratna Park
 R3014451,S0031,41,Bagbazar Stop
 R3020174,S0198,1,Ratnapark(purano bus park)
 R3020174,S0137,2,Ghantaghar (घण्टाघर) stop
-R3020174,S0094,4,Krishna Pauroti Stop
 R3020174,S0042,3,Kamaladi Road (कमलादी) stop
-R3020174,S0005,5,Putalisadak Stop
-R3020174,S0206,6,Putalisadak chowk
-R3020174,S0055,7,Dillibazaar stop
-R3020174,S0035,8,Maiti Devi chowk
-R3020174,S0222,9,Old Baneshwor
-R3020174,S0016,10,Bhimsengola stop
-R3020174,S0148,11,Sinamangal
-R3020174,S0027,12,KMC stop
-R3020174,S0139,13,Sinamangal/Ring Road Stop सिनामंगल
-R3020174,S0053,14,Gairigaun Stop
-R3020174,S0107,15,Koteshwor Stop
-R3020174,S0215,16,Jadibuti Stop
-R3020174,S0159,17,Jadibuti
-R3020174,S0156,18,Pepsi Cola Chowk
-R3020174,S0120,19,Gothatar
+R3020174,S0005,4,Putalisadak Stop
+R3020174,S0206,5,Putalisadak chowk
+R3020174,S0055,6,Dillibazaar stop
+R3020174,S0035,7,Maiti Devi chowk
+R3020174,S0222,8,Old Baneshwor
+R3020174,S0016,9,Bhimsengola stop
+R3020174,S0148,10,Sinamangal
+R3020174,S0027,11,KMC stop
+R3020174,S0139,12,Sinamangal/Ring Road Stop सिनामंगल
+R3020174,S0053,13,Gairigaun Stop
+R3020174,S0107,14,Koteshwor Stop
+R3020174,S0215,15,Jadibuti Stop
+R3020174,S0159,16,Jadibuti
+R3020174,S0156,17,Pepsi Cola Chowk
+R3020174,S0120,18,Gothatar
 R3020212,S0009,1,Dhokashi
 R3020212,S0073,2,Chobhar Gate
 R3020212,S0049,3,Naya Bato

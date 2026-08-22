@@ -61,3 +61,32 @@ export async function removeStopFromRoute(
   if (!res.ok) throw new Error(`Failed to remove stop from route (${res.status})`);
   return res.json();
 }
+
+export async function updateRouteStops(
+  routeId: string,
+  stopIds: string[]
+): Promise<RouteDetail> {
+  const res = await fetch(`${API_URL}/routes/${encodeURIComponent(routeId)}/stops`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ stop_ids: stopIds }),
+  });
+  if (!res.ok) throw new Error(`Failed to update route stops (${res.status})`);
+  return res.json();
+}
+
+export async function createStop(payload: {
+  stop_name: string;
+  lat: number;
+  lng: number;
+  is_interchange?: boolean;
+  is_major_stop?: boolean;
+}): Promise<Stop> {
+  const res = await fetch(`${API_URL}/stops`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`Failed to create stop (${res.status})`);
+  return res.json();
+}
