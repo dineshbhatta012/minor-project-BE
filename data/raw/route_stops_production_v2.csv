@@ -1513,9 +1513,10 @@ R-SAJHA-04,S0063,15,Kupondole stop
 R-SAJHA-04,S0056,16,Tripureshwor
 R-SAJHA-04,S0236,17,"NAC (Nepal Airlines Corporation, Kantipath)"
 R-SAJHA-04,S0152,18,Jamal
-R-SAJHA-04,S0149,19,Lazimpat stop
-R-SAJHA-04,S0087,20,Lainchaur stop
-R-SAJHA-04,S0013,21,Ratna Park
+R-SAJHA-04,S_391,19,lainchaur chowk
+R-SAJHA-04,S0149,20,Lazimpat stop
+R-SAJHA-04,S_390,21,narayanhiti north gate stop
+R-SAJHA-04,S0013,22,Ratna Park
 R-SAJHA-05,S0010,1,Thankot
 R-SAJHA-05,S_401,2,Naag Dunga
 R-SAJHA-05,S0270,3,Tribhuwan Park
