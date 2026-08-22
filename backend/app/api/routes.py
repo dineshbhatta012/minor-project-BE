@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+import subprocess
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, Body, BackgroundTasks
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -8,6 +10,14 @@ from app.routing.graph_builder import refresh_graph
 from app.schemas import RouteDetailOut, RouteSummaryOut, StopOut, RouteStopsUpdateRequest
 
 router = APIRouter(prefix="/routes", tags=["routes"])
+ 
+import sys
+def run_export_data():
+    script_path = Path(__file__).resolve().parents[2] / "scripts" / "export_data.py"
+    try:
+        subprocess.run([sys.executable, str(script_path)], check=True)
+    except Exception as e:
+        print(f"Failed to export data: {e}")
 
 
 def _fetch_route_detail(db: Session, route_id: str) -> RouteDetailOut | None:
@@ -71,7 +81,7 @@ def get_route(route_id: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/{route_id}/stops/{stop_id}", response_model=RouteDetailOut)
-def remove_stop_from_route(route_id: str, stop_id: str, db: Session = Depends(get_db)):
+def remove_stop_from_route(route_id: str, stop_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Remove a stop from one route's stop sequence. The stop itself stays in
     the stops table and on every other route that serves it — only the
     route_stops mapping row for (route_id, stop_id) is deleted. The remaining
@@ -145,6 +155,7 @@ def remove_stop_from_route(route_id: str, stop_id: str, db: Session = Depends(ge
         {"total": len(remaining), "km": approx_km, "route_id": route_id},
     )
     db.commit()
+    background_tasks.add_task(run_export_data)
 
     refresh_graph(db)
 
@@ -157,6 +168,7 @@ def remove_stop_from_route(route_id: str, stop_id: str, db: Session = Depends(ge
 def update_route_stops(
     route_id: str,
     payload: RouteStopsUpdateRequest = Body(...),
+    background_tasks: BackgroundTasks = None,
     db: Session = Depends(get_db)
 ):
     """Replace the entire stop sequence for a route. Used for both reordering
@@ -225,6 +237,8 @@ def update_route_stops(
         },
     )
     db.commit()
+    if background_tasks:
+        background_tasks.add_task(run_export_data)
 
     refresh_graph(db)
 
