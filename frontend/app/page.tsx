@@ -59,6 +59,7 @@ export default function Home() {
       return next;
     });
   }
+  const [showUnverifiedOnly, setShowUnverifiedOnly] = useState(false);
   const [editStopMode, setEditStopMode] = useState(false);
   const [addStopMode, setAddStopMode] = useState(false);
   const [editingStop, setEditingStop] = useState<Stop | null>(null);
@@ -651,7 +652,7 @@ export default function Home() {
     }
   }
 
-  async function handleDeleteStopFromRoute(stopId: string, stopName: string) {
+  async function handleDeleteStopFromRoute(sequenceNo: number, stopName: string) {
     if (!selectedRoute) return;
     if (selectedRoute.stops.length <= 2) {
       setError("A route must keep at least two stops — cannot remove any more.");
@@ -660,7 +661,7 @@ export default function Home() {
     if (!window.confirm(`Remove "${stopName}" from ${selectedRoute.route_name}?`)) return;
     setError(null);
     try {
-      const updated = await removeStopFromRoute(selectedRoute.route_id, stopId);
+      const updated = await removeStopFromRoute(selectedRoute.route_id, sequenceNo);
       setRoutes((prev) =>
         prev.map((r) =>
           r.route_id === updated.route_id
@@ -896,70 +897,96 @@ export default function Home() {
             {/* Route list with checkboxes */}
             {(() => {
               const activeGroup = routeGroups.find((g) => g.name === activeCategory)!;
-              const verified = activeGroup.routes.filter((r) => verifiedRoutes.has(r.route_id)).length;
+              const verifiedCount = activeGroup.routes.filter((r) => verifiedRoutes.has(r.route_id)).length;
+              const unverifiedCount = activeGroup.routes.length - verifiedCount;
+              const displayRoutes = showUnverifiedOnly
+                ? activeGroup.routes.filter((r) => !verifiedRoutes.has(r.route_id))
+                : activeGroup.routes;
               return (
                 <div className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-xs text-neutral-500">
-                      {verified}/{activeGroup.routes.length} verified
-                    </span>
-                    <div className="w-24 h-1.5 rounded-full bg-route-line overflow-hidden">
+                  {/* Progress bar + filter toggle */}
+                  <div className="flex items-center justify-between px-1 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowUnverifiedOnly((v) => !v)}
+                      className={`flex items-center gap-1.5 text-xs font-medium rounded px-2 py-0.5 border transition-colors cursor-pointer ${
+                        showUnverifiedOnly
+                          ? "bg-amber-500/20 border-amber-500/50 text-amber-300"
+                          : "bg-route-bg border-route-line text-neutral-400 hover:border-amber-400 hover:text-amber-300"
+                      }`}
+                      title={showUnverifiedOnly ? "Show all routes" : "Show only unverified routes"}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      {showUnverifiedOnly ? `Unverified (${unverifiedCount})` : `${verifiedCount}/${activeGroup.routes.length} verified`}
+                    </button>
+                    <div className="flex-1 h-1.5 rounded-full bg-route-line overflow-hidden">
                       <div
                         className="h-full rounded-full bg-emerald-500 transition-all"
-                        style={{ width: activeGroup.routes.length > 0 ? `${(verified / activeGroup.routes.length) * 100}%` : "0%" }}
+                        style={{ width: activeGroup.routes.length > 0 ? `${(verifiedCount / activeGroup.routes.length) * 100}%` : "0%" }}
                       />
                     </div>
                   </div>
                   <ul className="flex flex-col gap-0.5 max-h-64 overflow-y-auto pr-1">
-                    {activeGroup.routes.map((r) => {
-                      const isVerified = verifiedRoutes.has(r.route_id);
-                      const isSelected = selectedRoute?.route_id === r.route_id;
-                      return (
-                        <li
-                          key={r.route_id}
-                          className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors group ${
-                            isSelected
-                              ? "bg-route-accent/20 border border-route-accent/40"
-                              : "border border-transparent hover:bg-route-bg/60"
-                          }`}
-                        >
-                          {/* Verification checkbox */}
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); toggleRouteVerified(r.route_id); }}
-                            title={isVerified ? "Mark as unverified" : "Mark as verified"}
-                            className={`shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors cursor-pointer ${
-                              isVerified
-                                ? "bg-emerald-500 border-emerald-500 text-white"
-                                : "bg-route-bg border-route-line text-transparent hover:border-emerald-400"
+                    {displayRoutes.length === 0 ? (
+                      <li className="text-xs text-emerald-400 text-center py-3 opacity-70">
+                        ✓ All routes in this section are verified!
+                      </li>
+                    ) : (
+                      displayRoutes.map((r) => {
+                        const isVerified = verifiedRoutes.has(r.route_id);
+                        const isSelected = selectedRoute?.route_id === r.route_id;
+                        return (
+                          <li
+                            key={r.route_id}
+                            className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors group ${
+                              isSelected
+                                ? "bg-route-accent/20 border border-route-accent/40"
+                                : "border border-transparent hover:bg-route-bg/60"
                             }`}
                           >
-                            {isVerified && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                            )}
-                          </button>
-                          {/* Route name — click to load */}
-                          <button
-                            type="button"
-                            disabled={routeLoading}
-                            onClick={() => handleSelectRoute(r.route_id)}
-                            className={`flex-1 text-left truncate transition-colors cursor-pointer disabled:opacity-50 ${
-                              isSelected ? "text-white font-medium" : "text-neutral-300 hover:text-white"
-                            }`}
-                            title={`${r.route_name} · ${r.total_stops} stops`}
-                          >
-                            {r.route_name}
-                          </button>
-                          <span className="shrink-0 text-neutral-600 tabular-nums">{r.total_stops}</span>
-                        </li>
-                      );
-                    })}
+                            {/* Verification checkbox */}
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); toggleRouteVerified(r.route_id); }}
+                              title={isVerified ? "Mark as unverified" : "Mark as verified"}
+                              className={`shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors cursor-pointer ${
+                                isVerified
+                                  ? "bg-emerald-500 border-emerald-500 text-white"
+                                  : "bg-route-bg border-route-line text-transparent hover:border-emerald-400"
+                              }`}
+                            >
+                              {isVerified && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                            </button>
+                            {/* Route name — click to load */}
+                            <button
+                              type="button"
+                              disabled={routeLoading}
+                              onClick={() => handleSelectRoute(r.route_id)}
+                              className={`flex-1 text-left truncate transition-colors cursor-pointer disabled:opacity-50 ${
+                                isSelected ? "text-white font-medium" : "text-neutral-300 hover:text-white"
+                              }`}
+                              title={`${r.route_name} · ${r.total_stops} stops`}
+                            >
+                              {r.route_name}
+                            </button>
+                            <span className="shrink-0 text-neutral-600 tabular-nums">{r.total_stops}</span>
+                          </li>
+                        );
+                      })
+                    )}
                   </ul>
                 </div>
               );
             })()}
+
 
             {routeLoading && (
               <p className="text-xs text-route-accent">Loading route stops…</p>
@@ -1020,7 +1047,11 @@ export default function Home() {
                   <span className="flex-1 truncate">{s.stop_name}</span>
                   <button
                     type="button"
-                    onClick={() => handleDeleteStopFromRoute(s.stop_id, s.stop_name)}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteStopFromRoute(i + 1, s.stop_name);
+                    }}
                     disabled={selectedRoute.stops.length <= 2}
                     title={`Remove ${s.stop_name} from ${selectedRoute.route_name}`}
                     className="shrink-0 rounded p-1 text-neutral-600 opacity-0 group-hover:opacity-100 hover:text-red-400 focus:opacity-100 disabled:opacity-0 transition-colors cursor-pointer"

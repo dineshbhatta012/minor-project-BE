@@ -52,10 +52,10 @@ export async function updateStopCoordinates(
 
 export async function removeStopFromRoute(
   routeId: string,
-  stopId: string
+  sequenceNo: number
 ): Promise<RouteDetail> {
   const res = await fetch(
-    `${API_URL}/routes/${encodeURIComponent(routeId)}/stops/${encodeURIComponent(stopId)}`,
+    `${API_URL}/routes/${encodeURIComponent(routeId)}/stops/${sequenceNo}`,
     { method: "DELETE" }
   );
   if (!res.ok) throw new Error(`Failed to remove stop from route (${res.status})`);

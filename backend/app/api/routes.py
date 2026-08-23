@@ -80,12 +80,11 @@ def get_route(route_id: str, db: Session = Depends(get_db)):
     return detail
 
 
-@router.delete("/{route_id}/stops/{stop_id}", response_model=RouteDetailOut)
-def remove_stop_from_route(route_id: str, stop_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    """Remove a stop from one route's stop sequence. The stop itself stays in
-    the stops table and on every other route that serves it — only the
-    route_stops mapping row for (route_id, stop_id) is deleted. The remaining
-    stops are re-numbered and the cached routing graph is rebuilt."""
+@router.delete("/{route_id}/stops/{sequence_no}", response_model=RouteDetailOut)
+def remove_stop_from_route(route_id: str, sequence_no: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Remove one position from a route's stop sequence. The stop itself
+    remains available to other routes; only this route_stops row is deleted.
+    The remaining stops are re-numbered and the routing graph is rebuilt."""
     route_row = db.execute(
         text("SELECT route_id FROM routes WHERE route_id = :route_id AND status = 'active'"),
         {"route_id": route_id},
@@ -94,11 +93,16 @@ def remove_stop_from_route(route_id: str, stop_id: str, background_tasks: Backgr
         raise HTTPException(status_code=404, detail=f"Route '{route_id}' not found")
 
     stop_row = db.execute(
-        text("SELECT stop_id FROM stops WHERE stop_id = :stop_id AND status = 'active'"),
-        {"stop_id": stop_id},
+        text(
+            "SELECT rs.stop_id FROM route_stops rs "
+            "JOIN stops s ON s.stop_id = rs.stop_id "
+            "WHERE rs.route_id = :route_id AND rs.sequence_no = :sequence_no "
+            "AND s.status = 'active'"
+        ),
+        {"route_id": route_id, "sequence_no": sequence_no},
     ).mappings().first()
     if stop_row is None:
-        raise HTTPException(status_code=404, detail=f"Stop '{stop_id}' not found")
+        raise HTTPException(status_code=404, detail=f"Sequence {sequence_no} is not on route '{route_id}'")
 
     current_count = db.execute(
         text("SELECT count(*) AS c FROM route_stops WHERE route_id = :route_id"),
@@ -110,34 +114,34 @@ def remove_stop_from_route(route_id: str, stop_id: str, background_tasks: Backgr
             detail="A route must keep at least two stops — cannot remove any more.",
         )
 
-    deleted = db.execute(
-        text(
-            "DELETE FROM route_stops WHERE route_id = :route_id AND stop_id = :stop_id"
-            " RETURNING sequence_no"
-        ),
-        {"route_id": route_id, "stop_id": stop_id},
-    ).mappings().first()
-    if deleted is None:
-        raise HTTPException(
-            status_code=404, detail=f"Stop '{stop_id}' is not on route '{route_id}'"
-        )
+    db.execute(
+        text("DELETE FROM route_stops WHERE route_id = :route_id AND sequence_no = :sequence_no"),
+        {"route_id": route_id, "sequence_no": sequence_no},
+    )
 
     remaining = db.execute(
         text(
-            "SELECT rs.stop_id, s.lat, s.lng FROM route_stops rs"
+            "SELECT rs.stop_id, rs.sequence_no, s.lat, s.lng FROM route_stops rs"
             " JOIN stops s ON s.stop_id = rs.stop_id"
             " WHERE rs.route_id = :route_id ORDER BY rs.sequence_no"
         ),
         {"route_id": route_id},
     ).mappings().all()
 
+    db.execute(
+        text(
+            "UPDATE route_stops SET sequence_no = sequence_no + 1000000 "
+            "WHERE route_id = :route_id"
+        ),
+        {"route_id": route_id},
+    )
     for i, row in enumerate(remaining, start=1):
         db.execute(
             text(
                 "UPDATE route_stops SET sequence_no = :seq"
-                " WHERE route_id = :route_id AND stop_id = :stop_id"
+                " WHERE route_id = :route_id AND sequence_no = :old_seq"
             ),
-            {"seq": i, "route_id": route_id, "stop_id": row["stop_id"]},
+            {"seq": i, "route_id": route_id, "old_seq": row["sequence_no"] + 1000000},
         )
 
     approx_km = round(
@@ -149,10 +153,17 @@ def remove_stop_from_route(route_id: str, stop_id: str, background_tasks: Backgr
     )
     db.execute(
         text(
-            "UPDATE routes SET total_stops = :total, approx_distance_km = :km"
+            "UPDATE routes SET total_stops = :total, approx_distance_km = :km, "
+            "start_stop_id = :start_stop_id, end_stop_id = :end_stop_id"
             " WHERE route_id = :route_id"
         ),
-        {"total": len(remaining), "km": approx_km, "route_id": route_id},
+        {
+            "total": len(remaining),
+            "km": approx_km,
+            "start_stop_id": remaining[0]["stop_id"],
+            "end_stop_id": remaining[-1]["stop_id"],
+            "route_id": route_id,
+        },
     )
     db.commit()
     background_tasks.add_task(run_export_data)
