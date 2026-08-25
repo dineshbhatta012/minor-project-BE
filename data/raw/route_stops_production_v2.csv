@@ -1027,8 +1027,8 @@ R3102605,S_400,32,kalanki-l
 R3102605,S0246,33,Bafal
 R3102605,S0090,34,Sitapaila Stop
 R3102605,S0211,35,Swayambhu Parikarma
-R3203278,S0070,1,Airport Bus Station
-R3203278,S0139,2,Sinamangal/Ring Road Stop सिनामंगल
+R3203278,S0139,1,Sinamangal/Ring Road Stop सिनामंगल
+R3203278,S0070,2,Airport Bus Station
 R3203278,S0347,3,Tilganga
 R3203278,S0204,4,Gaushala Chowk Stop
 R3203278,S0348,5,Battisputali
