@@ -89,8 +89,9 @@ CREATE TABLE routes (
     operator                          TEXT,               -- free-text operator name as originally recorded
     operator_id                       TEXT REFERENCES operators(operator_id) ON DELETE SET NULL,
     operator_id_raw                   TEXT,                -- raw/staging value (may list multiple ids "A;B")
-    start_stop_id                     TEXT NOT NULL REFERENCES stops(stop_id) ON DELETE RESTRICT,
-    end_stop_id                       TEXT NOT NULL REFERENCES stops(stop_id) ON DELETE RESTRICT,
+    -- Draft routes have no sequence yet; these are populated when stops are added.
+    start_stop_id                     TEXT REFERENCES stops(stop_id) ON DELETE RESTRICT,
+    end_stop_id                       TEXT REFERENCES stops(stop_id) ON DELETE RESTRICT,
     total_stops                       INTEGER NOT NULL CHECK (total_stops >= 0),
     approx_distance_km                NUMERIC(6,2),
     approx_distance_km_original       NUMERIC(6,2),

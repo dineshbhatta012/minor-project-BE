@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class StopOut(BaseModel):
@@ -20,6 +20,10 @@ class StopCreateRequest(BaseModel):
 class StopUpdateRequest(BaseModel):
     lat: float
     lng: float
+
+class RouteCreateRequest(BaseModel):
+    route_name: str = Field(min_length=1, max_length=200)
+
 
 class RouteStopsUpdateRequest(BaseModel):
     stop_ids: list[str]
@@ -56,8 +60,8 @@ class RouteSummaryOut(BaseModel):
     vehicle_type: str
     total_stops: int
     approx_distance_km: float | None
-    start_stop_id: str
-    end_stop_id: str
+    start_stop_id: str | None = None
+    end_stop_id: str | None = None
 
 
 class RouteDetailOut(RouteSummaryOut):

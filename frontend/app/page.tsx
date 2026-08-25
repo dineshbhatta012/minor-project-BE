@@ -13,6 +13,7 @@ import {
   updateStopCoordinates,
   updateRouteStops,
   createStop,
+  createRoute,
 } from "@/lib/api";
 import { enrichRouteWithRoadGeometry, getRoadPath } from "@/lib/osrm";
 import { haversineMeters } from "@/lib/geo";
@@ -80,6 +81,9 @@ export default function Home() {
   const [selectedRoute, setSelectedRoute] = useState<RouteDetail | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [showSequence, setShowSequence] = useState(false);
+  const [creatingRoute, setCreatingRoute] = useState(false);
+  const [creatingRouteSaving, setCreatingRouteSaving] = useState(false);
+  const [newRouteName, setNewRouteName] = useState("");
   const [draggedStopIndex, setDraggedStopIndex] = useState<number | null>(null);
   const [dragOverStopIndex, setDragOverStopIndex] = useState<number | null>(null);
   const [addingStop, setAddingStop] = useState(false);
@@ -363,7 +367,8 @@ export default function Home() {
     }
   }
 
-  async function buildRouteResult(detail: RouteDetail): Promise<RouteSearchResult> {
+  async function buildRouteResult(detail: RouteDetail): Promise<RouteSearchResult | null> {
+    if (detail.stops.length < 2) return null;
     const data: RouteSearchResult = {
       found: true,
       transfer_count: 0,
@@ -690,6 +695,76 @@ export default function Home() {
                     className="w-full bg-route-bg border border-route-line rounded px-3 py-2 text-sm text-neutral-200 outline-none focus:border-route-accent transition-colors"
                   />
 
+                  <button
+                    type="button"
+                    onClick={() => setCreatingRoute(true)}
+                    className="mt-2 rounded-md bg-route-accent text-route-bg font-medium py-1.5 text-xs transition-colors cursor-pointer"
+                  >
+                    Create route
+                  </button>
+                  {creatingRoute ? (
+                    <div className="mt-2 flex flex-col gap-2 p-2 bg-route-bg/50 border border-route-line rounded-md">
+                      <p className="text-xs text-neutral-400">Enter route name:</p>
+                      <input
+                        type="text"
+                        value={newRouteName}
+                        onChange={(e) => setNewRouteName(e.target.value)}
+                        placeholder="Route name"
+                        className="w-full bg-route-bg border border-route-line rounded px-3 py-1.5 text-sm text-neutral-200 outline-none focus:border-route-accent transition-colors"
+                      />
+                      <div className="flex gap-2 mt-1">
+                        <button
+                          type="button"
+                          onClick={() => setCreatingRoute(false)}
+                          className="flex-1 rounded border border-route-line bg-route-bg hover:bg-neutral-800 text-neutral-300 font-medium px-3 py-1.5 text-xs transition-colors cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!newRouteName.trim()) {
+                              alert("Please enter a route name");
+                              return;
+                            }
+                            setCreatingRouteSaving(true);
+                            try {
+                              const created = await createRoute(newRouteName);
+                              setRoutes((prev) => [...prev, {
+                                route_id: created.route_id,
+                                route_name: created.route_name,
+                                short_name: created.short_name,
+                                vehicle_type: created.vehicle_type,
+                                total_stops: created.total_stops,
+                                approx_distance_km: created.approx_distance_km,
+                                start_stop_id: created.start_stop_id,
+                                end_stop_id: created.end_stop_id,
+                              }]);
+                              setSelectedRoute({
+                                ...created,
+                                stops: [],
+                              });
+                              setResult(null);
+                              setAddingStop(false);
+                              setShowSequence(true);
+                              setCreatingRoute(false);
+                              setNewRouteName("");
+                            } catch (e) {
+                              alert("Failed to create route: " + (e instanceof Error ? e.message : String(e)));
+                            } finally {
+                              setCreatingRouteSaving(false);
+                            }
+                          }}
+                          disabled={creatingRouteSaving}
+                          className="flex-1 rounded border border-route-accent bg-route-accent text-route-bg font-medium py-1.5 text-xs transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          Create
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    ""
+                  )}
                   {filteredRoutes.length > 0 && (
                     <ul className="flex flex-col gap-0.5 max-h-80 overflow-y-auto pr-1">
                       {filteredRoutes.map((r) => {

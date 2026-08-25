@@ -22,6 +22,8 @@ Spin up the PostGIS database container from the repository root:
 docker compose up -d db
 ```
 *Note: The schema is automatically applied on the first run. To wipe and recreate the database, run `docker compose down -v`.*
+Existing databases need the draft-route migration once:
+`psql -d ktm_bus -f backend/db_init/02_route_drafts.sql`
 
 ### 2. Backend Setup (FastAPI)
 

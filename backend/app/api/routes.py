@@ -7,7 +7,14 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.routing.geo import haversine_km
 from app.routing.graph_builder import refresh_graph
-from app.schemas import RouteDetailOut, RouteSummaryOut, StopOut, RouteStopsUpdateRequest
+from app.schemas import (
+    RouteCreateRequest,
+    RouteDetailOut,
+    RouteSummaryOut,
+    StopOut,
+    RouteStopsUpdateRequest,
+)
+
 
 router = APIRouter(prefix="/routes", tags=["routes"])
  
@@ -192,8 +199,8 @@ def update_route_stops(
         raise HTTPException(status_code=404, detail=f"Route '{route_id}' not found")
 
     stop_ids = payload.stop_ids
-    if len(stop_ids) < 2:
-        raise HTTPException(status_code=400, detail="A route must have at least two stops.")
+    if len(stop_ids) < 1:
+        raise HTTPException(status_code=400, detail="A route must have at least one stop.")
 
     # Check if all stops exist
     existing_stops = db.execute(
@@ -257,3 +264,55 @@ def update_route_stops(
     if detail is None:
         raise HTTPException(status_code=404, detail=f"Route '{route_id}' not found")
     return detail
+
+
+@router.post("", response_model=RouteSummaryOut)
+def create_route(
+    payload: RouteCreateRequest = Body(...),
+    db: Session = Depends(get_db),
+):
+    route_name = payload.route_name.strip()
+    if not route_name:
+        raise HTTPException(status_code=400, detail="Route name cannot be blank.")
+
+    # Serialize ID allocation so concurrent requests cannot choose the same ID.
+    db.execute(text("SELECT pg_advisory_xact_lock(hashtext('routes-route-id'))"))
+    # Keep generated IDs stable and readable while checking the primary key
+    # before inserting, so an existing non-numeric route ID cannot collide.
+    max_row = db.execute(
+        text(
+            "SELECT COALESCE(MAX(CAST(SUBSTRING(route_id FROM 2) AS INTEGER)), 0) AS max_id "
+            "FROM routes WHERE route_id ~ '^R[0-9]+$'"
+        ),
+    ).mappings().first()
+    new_route_id = f"R{int(max_row['max_id']) + 1}"
+
+    # Create the route with default values (no stops initially)
+    db.execute(
+        text(
+            "INSERT INTO routes "
+            "(route_id, route_name, vehicle_type, total_stops, start_stop_id, end_stop_id, status) "
+            "VALUES (:route_id, :route_name, :vehicle_type, 0, NULL, NULL, 'active')"
+        ),
+        {
+            "route_id": new_route_id,
+            "route_name": route_name,
+            "vehicle_type": "bus",
+        },
+    )
+    db.commit()
+
+    # Return the created route summary
+    row = db.execute(
+        text(
+            "SELECT route_id, route_name, short_name, vehicle_type, "
+            "total_stops, approx_distance_km, start_stop_id, end_stop_id "
+            "FROM routes WHERE route_id = :route_id AND status = 'active'"
+        ),
+        {"route_id": new_route_id},
+    ).mappings().first()
+
+    if row is None:
+        raise HTTPException(status_code=500, detail="Failed to create route")
+
+    return RouteSummaryOut(**dict(row))
