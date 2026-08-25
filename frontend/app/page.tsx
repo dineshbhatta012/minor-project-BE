@@ -29,6 +29,7 @@ export default function Home() {
   const [isNavigateMinimized, setIsNavigateMinimized] = useState(false);
   const [isRoutesMinimized, setIsRoutesMinimized] = useState(false);
   const [isEditMinimized, setIsEditMinimized] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(true);
 
   // Stops state
   const [stops, setStops] = useState<Stop[]>([]);
@@ -506,9 +507,7 @@ export default function Home() {
   }
 
   // Filtered routes in single "Show all routes" list
-  const filteredRoutes = routes.filter((r) =>
-    r.route_name.toLowerCase().includes(routeSearchQuery.toLowerCase())
-  );
+  const filteredRoutes = routes.filter((r) => r.route_name.toLowerCase().includes(routeSearchQuery.toLowerCase()));
 
   return (
     <main className="flex flex-col h-screen w-screen bg-route-bg text-neutral-100 overflow-hidden font-sans">
@@ -627,48 +626,50 @@ export default function Home() {
       {/* ── Main Body: Sidebar + Map ── */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left Side Panel (Collapsible) */}
-        {isPanelOpen && (
+{isPanelOpen && (
           <aside className="w-full max-w-sm flex flex-col gap-4 p-4 overflow-y-auto border-r border-route-line bg-route-bg/95 shrink-0 z-10">
-            {stopsError && (
-                <>
-                  <p className="text-sm font-medium text-white">{editingStop.stop_name}</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    New coordinates: {draftStop.lat.toFixed(6)}, {draftStop.lng.toFixed(6)}
+            {editingStop && (
+              <div className="rounded-md border-route-line bg-route-panel p-3">
+                {draftStop ? (
+                  <>
+                    <p className="text-sm font-medium text-white">{editingStop.stop_name}</p>
+                    <p className="text-xs text-neutral-400 mt-0.5">
+                      New coordinates: {draftStop.lat.toFixed(6)}, {draftStop.lng.toFixed(6)}
+                    </p>
+                    {stopMoveError && <p className="text-xs text-red-400 mt-2">{stopMoveError}</p>}
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        type="button"
+                        onClick={handleSaveStopMove}
+                        disabled={stopMoveSaving}
+                        className="flex-1 rounded-md bg-route-accent text-route-bg font-semibold py-2 text-xs disabled:opacity-50 transition-colors cursor-pointer"
+                      >
+                        {stopMoveSaving ? "Saving…" : "Save new position"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelStopMove}
+                        disabled={stopMoveSaving}
+                        className="flex-1 rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white font-medium py-2 text-xs transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-neutral-300 leading-relaxed">
+                    Drag the <span className="text-fuchsia-400 font-medium">violet marker</span> on the map to reposition <span className="font-medium text-white">{editingStop.stop_name}</span>.
                   </p>
-                  {stopMoveError && <p className="text-xs text-red-400 mt-2">{stopMoveError}</p>}
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      type="button"
-                      onClick={handleSaveStopMove}
-                      disabled={stopMoveSaving}
-                      className="flex-1 rounded-md bg-route-accent text-route-bg font-semibold py-2 text-xs disabled:opacity-50 transition-colors cursor-pointer"
-                    >
-                      {stopMoveSaving ? "Saving…" : "Save new position"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelStopMove}
-                      disabled={stopMoveSaving}
-                      className="flex-1 rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white font-medium py-2 text-xs transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p className="text-xs text-neutral-300 leading-relaxed">
-                  Drag the <span className="text-fuchsia-400 font-medium">violet marker</span> on the map to reposition <span className="font-medium text-white">{editingStop.stop_name}</span>.
-                </p>
-              )}
-            </div>
-          )}
-
-          {refreshError && (
-            <div className="absolute top-4 right-4 z-[1100] max-w-[260px] rounded-md bg-red-950/90 border border-red-900 px-3 py-2 text-xs text-red-300 shadow-lg">
-              {refreshError}
-            </div>
-          )}
-        </div>
+                )}
+              </div>
+            )}
+            {refreshError && (
+              <div className="absolute top-4 right-4 z-[1100] max-w-[260px] rounded-md bg-red-950/90 border border-red-900 px-3 py-2 text-xs text-red-300 shadow-lg">
+                {refreshError}
+              </div>
+            )}
+</aside>
+        )}
       </div>
     </main>
   );
