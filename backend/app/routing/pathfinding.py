@@ -73,11 +73,6 @@ def find_route_dijkstra(
 
 
 def path_to_legs(graph_data: GraphData, path: list[str]) -> tuple[list[dict], float]:
-    """
-    Groups a raw node path into per-route legs and sums real travel distance
-    (ignoring the 0-weight alight edges and the transfer-penalty board edges,
-    which aren't real distance).
-    """
     legs: list[dict] = []
     total_km = 0.0
     current_route_id: str | None = None
@@ -101,21 +96,39 @@ def path_to_legs(graph_data: GraphData, path: list[str]) -> tuple[list[dict], fl
         current_route_id = None
         current_stop_ids = []
 
-    for node in path:
+    for i in range(len(path)):
+        node = path[i]
+        
         if node.startswith("R:"):
             _, route_id, stop_id = node.split(":", 2)
             if route_id != current_route_id:
                 flush()
                 current_route_id = route_id
             current_stop_ids.append(stop_id)
-        # "S:" nodes are transfer/arrival points — they don't start a new
-        # leg by themselves, the next "R:" node does (or the walk ends here)
+            
+        if i > 0:
+            u, v = path[i-1], path[i]
+            edge = g.get_edge_data(u, v)
+            if edge and edge.get("kind") == "walk":
+                flush()
+                from_id = u.split(":", 1)[1]
+                to_id = v.split(":", 1)[1]
+                legs.append(
+                    {
+                        "route_id": "walk",
+                        "route_name": f"Walk to {graph_data.stops_by_id[to_id]['stop_name']}",
+                        "operator": None,
+                        "from_stop_id": from_id,
+                        "to_stop_id": to_id,
+                        "stop_ids": [from_id, to_id],
+                    }
+                )
 
     flush()
 
     for u, v in zip(path, path[1:]):
         edge = g.get_edge_data(u, v)
-        if edge and edge.get("kind") == "travel":
-            total_km += edge["weight"]
+        if edge and edge.get("kind") in ("travel", "walk"):
+            total_km += edge.get("physical_dist", edge["weight"])
 
     return legs, round(total_km, 3)

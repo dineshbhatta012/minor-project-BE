@@ -548,9 +548,8 @@ export default function BusMap({
       )}
 
       {/* Bus icons are shown while choosing from/to or editing on the map,
-          but hidden whenever a route is displayed (except in edit mode,
-          where the user still needs to click a stop to re-position it) */}
-      {selecting && (!result || editStopMode) &&
+          so the user can pick a new stop even if a route is currently displayed. */}
+      {selecting &&
         stops
           .filter((stop) => stop.stop_id !== editingStop?.stop_id)
           .map((stop) => stopMarker(stop, true))}
@@ -589,17 +588,23 @@ export default function BusMap({
         const markerCoords = leg.stopCoords ?? leg.path;
         const wps = getWaypointsForLeg(i);
 
+        const isWalk = leg.route_id === "walk";
+
         return (
-          <Fragment key={leg.route_id}>
+          <Fragment key={`${leg.route_id}-${i}`}>
             {/* Outline Polyline to make the route easily recognized */}
             <Polyline
               positions={leg.path}
-              pathOptions={{ color: "#0f172a", weight: 12, opacity: 0.45 }}
+              pathOptions={{ color: isWalk ? "#64748b" : "#0f172a", weight: isWalk ? 0 : 12, opacity: 0.45 }}
             />
             {/* Main colored Polyline following actual road geometry */}
             <Polyline
               positions={leg.path}
-              pathOptions={{ color, weight: 7 }}
+              pathOptions={{ 
+                color: isWalk ? "#64748b" : color, 
+                weight: isWalk ? 5 : 7,
+                dashArray: isWalk ? "5 10" : undefined 
+              }}
             />
 
             {/* Draggable waypoint handles — only in edit-route mode */}
