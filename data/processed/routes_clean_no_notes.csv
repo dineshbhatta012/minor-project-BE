@@ -96,6 +96,6 @@ R3351752,Test Route,,bus,,,,,0,,,,,,,False,False,active,2026-08-26 05:41:25.7954
 R3351753,Another Route,,bus,,,,,0,,,,,,,False,False,active,2026-08-26 05:41:25.801054+00:00,2026-08-26 05:41:25.801054+00:00,,False,,False,,,,False,,False,False
 R3351754,Test Route via API,,bus,,,,,0,,,,,,,False,False,active,2026-08-26 05:41:51.438123+00:00,2026-08-26 05:41:51.438123+00:00,,False,,False,,,,False,,False,False
 R3351755,Another Route,,bus,,,,,0,,,,,,,False,False,active,2026-08-26 05:41:51.450764+00:00,2026-08-26 05:41:51.450764+00:00,,False,,False,,,,False,,False,False
-R3351758,Bhaisepati-jorpati,,bus,,,S0247,S0135,26,14.94,,,,,,False,False,active,2026-08-26 06:27:39.237214+00:00,2026-08-26 06:27:39.237214+00:00,,False,,False,,,,False,,False,False
-R3351756,kalanki-kalanki,,bus,,,S_395,S_395,33,26.42,,,,,,False,False,active,2026-08-26 05:46:12.053620+00:00,2026-08-26 05:46:12.053620+00:00,,False,,False,,,,False,,False,False
-R3351757,Dhulikhel-Ratnapark,,bus,,,S0183,S0013,29,27.23,,,,,,False,False,active,2026-08-26 06:15:14.026117+00:00,2026-08-26 06:15:14.026117+00:00,,False,,False,,,,False,,False,False
+R3351758,Bhaisepati-jorpati,,bus,,,,,0,,,,,,,False,False,active,2026-08-26 06:27:39.237214+00:00,2026-08-26 06:27:39.237214+00:00,,False,,False,,,,False,,False,False
+R3351756,kalanki-kalanki,,bus,,,,,0,,,,,,,False,False,active,2026-08-26 05:46:12.053620+00:00,2026-08-26 05:46:12.053620+00:00,,False,,False,,,,False,,False,False
+R3351757,Dhulikhel-Ratnapark,,bus,,,,,0,,,,,,,False,False,active,2026-08-26 06:15:14.026117+00:00,2026-08-26 06:15:14.026117+00:00,,False,,False,,,,False,,False,False
