@@ -121,6 +121,22 @@ def build_graph_from_rows(
                 kind="travel",
             )
 
+    # Add walk edges between all stops within 200m to allow short walking transfers
+    stop_ids = list(stops_by_id.keys())
+    for i in range(len(stop_ids)):
+        for j in range(i + 1, len(stop_ids)):
+            s1, s2 = stop_ids[i], stop_ids[j]
+            lat1, lng1 = stops_by_id[s1]["lat"], stops_by_id[s1]["lng"]
+            lat2, lng2 = stops_by_id[s2]["lat"], stops_by_id[s2]["lng"]
+            dist = haversine_km(lat1, lng1, lat2, lng2)
+            if dist <= 0.200:  # 200m radius
+                # Add bidirectional walk edges
+                # We multiply the walk distance by 5.0 to represent that walking is slower 
+                # than riding a bus, discouraging long chains of walking.
+                walk_weight = dist * 5.0
+                graph.add_edge(stop_node(s1), stop_node(s2), weight=walk_weight, physical_dist=dist, kind="walk")
+                graph.add_edge(stop_node(s2), stop_node(s1), weight=walk_weight, physical_dist=dist, kind="walk")
+
     return GraphData(
         graph=graph,
         stops_by_id=stops_by_id,

@@ -42,8 +42,8 @@ export interface RouteSummary {
   vehicle_type: string;
   total_stops: number;
   approx_distance_km?: number | null;
-  start_stop_id: string;
-  end_stop_id: string;
+  start_stop_id: string | null;
+  end_stop_id: string | null;
 }
 
 export interface RouteDetail extends RouteSummary {

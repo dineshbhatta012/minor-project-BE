@@ -90,3 +90,13 @@ export async function createStop(payload: {
   if (!res.ok) throw new Error(`Failed to create stop (${res.status})`);
   return res.json();
 }
+
+export async function createRoute(routeName: string): Promise<RouteSummary> {
+  const res = await fetch(`${API_URL}/routes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ route_name: routeName.trim() }),
+  });
+  if (!res.ok) throw new Error(`Failed to create route (${res.status})`);
+  return res.json();
+}

@@ -22,26 +22,77 @@ def search_route(payload: RouteSearchRequest, db: Session = Depends(get_db)):
     if origin_id == dest_id:
         return RouteSearchResult(found=False, transfer_count=0, legs=[])
 
-    path = find_route_dijkstra(graph_data, origin_id, dest_id)
+    target_origin_id = origin_id
+    target_dest_id = dest_id
+    
+    direct = find_direct_route_bfs(graph_data, origin_id, dest_id)
+    
+    if direct is None:
+        from app.routing.geo import haversine_km
+        
+        origin_stop = graph_data.stops_by_id.get(origin_id)
+        dest_stop = graph_data.stops_by_id.get(dest_id)
+        
+        if origin_stop and dest_stop:
+            origin_lat, origin_lng = origin_stop["lat"], origin_stop["lng"]
+            dest_lat, dest_lng = dest_stop["lat"], dest_stop["lng"]
+            
+            cand_origins = [origin_id]
+            cand_dests = [dest_id]
+            
+            for stop_id, stop_data in graph_data.stops_by_id.items():
+                if stop_id != origin_id:
+                    if haversine_km(origin_lat, origin_lng, stop_data["lat"], stop_data["lng"]) <= 0.150:
+                        cand_origins.append(stop_id)
+                if stop_id != dest_id:
+                    if haversine_km(dest_lat, dest_lng, stop_data["lat"], stop_data["lng"]) <= 0.150:
+                        cand_dests.append(stop_id)
+                        
+            best_pair = None
+            min_score = float('inf')
+            
+            for o in cand_origins:
+                for d in cand_dests:
+                    if o == d:
+                        continue
+                    if find_direct_route_bfs(graph_data, o, d) is not None:
+                        o_data = graph_data.stops_by_id[o]
+                        d_data = graph_data.stops_by_id[d]
+                        # Score is the sum of distance from origin to candidate origin + distance from candidate dest to dest.
+                        # Wait, user prompt: "selct the bus stop which has lowest distance to the destination bus stop"
+                        # For origin candidate, it's haversine_km(o, dest_id). We can minimize this sum.
+                        score = haversine_km(o_data["lat"], o_data["lng"], dest_lat, dest_lng) + \
+                                haversine_km(d_data["lat"], d_data["lng"], dest_lat, dest_lng)
+                        if score < min_score:
+                            min_score = score
+                            best_pair = (o, d)
+                            
+            if best_pair is not None:
+                target_origin_id, target_dest_id = best_pair
+
+    path = find_route_dijkstra(graph_data, target_origin_id, target_dest_id)
 
     if path is None:
-        return RouteSearchResult(found=False, transfer_count=0, legs=[])
+        # Fall back to Dijkstra without nearby candidates if even they failed to yield a path
+        if target_origin_id != origin_id or target_dest_id != dest_id:
+            target_origin_id = origin_id
+            target_dest_id = dest_id
+            path = find_route_dijkstra(graph_data, origin_id, dest_id)
+            
+        if path is None:
+            return RouteSearchResult(found=False, transfer_count=0, legs=[])
 
     legs_raw, total_km = path_to_legs(graph_data, path)
 
-    # Sanity check, not a gate: if a direct route exists in the raw data but
-    # Dijkstra's result used a transfer anyway, the transfer penalty or
-    # weighting is probably off — log it rather than silently serving a
-    # worse-than-optimal route.
     if len(legs_raw) > 1:
-        direct = find_direct_route_bfs(graph_data, origin_id, dest_id)
-        if direct is not None:
+        check_direct = find_direct_route_bfs(graph_data, target_origin_id, target_dest_id)
+        if check_direct is not None:
             logger.warning(
                 "Dijkstra returned %d transfers for %s->%s but a direct route (%s) exists — check transfer_penalty_km",
                 len(legs_raw) - 1,
-                origin_id,
-                dest_id,
-                direct,
+                target_origin_id,
+                target_dest_id,
+                check_direct,
             )
 
     legs_out = [
@@ -58,10 +109,35 @@ def search_route(payload: RouteSearchRequest, db: Session = Depends(get_db)):
         )
         for leg in legs_raw
     ]
+    
+    def make_walk_leg(from_id: str, to_id: str) -> RouteLegOut:
+        from_stop = graph_data.stops_by_id[from_id]
+        to_stop = graph_data.stops_by_id[to_id]
+        from app.routing.geo import haversine_km
+        dist = haversine_km(from_stop["lat"], from_stop["lng"], to_stop["lat"], to_stop["lng"])
+        return RouteLegOut(
+            route_id="walk",
+            route_name=f"Walk to {to_stop['stop_name']}",
+            operator=None,
+            from_stop=StopOut(**from_stop),
+            to_stop=StopOut(**to_stop),
+            path=[
+                (from_stop["lat"], from_stop["lng"]),
+                (to_stop["lat"], to_stop["lng"])
+            ]
+        )
+
+    if target_origin_id != origin_id:
+        walk_leg = make_walk_leg(origin_id, target_origin_id)
+        legs_out.insert(0, walk_leg)
+        
+    if target_dest_id != dest_id:
+        walk_leg = make_walk_leg(target_dest_id, dest_id)
+        legs_out.append(walk_leg)
 
     return RouteSearchResult(
         found=True,
-        transfer_count=len(legs_out) - 1,
+        transfer_count=max(0, len([leg for leg in legs_out if leg.route_id != "walk"]) - 1),
         total_distance_km=total_km,
         legs=legs_out,
     )
