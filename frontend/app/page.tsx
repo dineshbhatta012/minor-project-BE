@@ -23,10 +23,17 @@ import { RouteDetail, RouteSearchResult, RouteSummary, Stop } from "@/types/rout
 const BusMap = dynamic(() => import("@/components/BusMap"), { ssr: false });
 
 type NavSection = "navigate" | "routes" | "edit";
+type AppMode = "user" | "admin";
 
 export default function Home() {
   // Navigation active tab and per-section open/minimize state
   const [activeTab, setActiveTab] = useState<NavSection>("navigate");
+  const [mode, setMode] = useState<AppMode>("user");
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminUsername, setAdminUsername] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [adminLoginError, setAdminLoginError] = useState<string | null>(null);
   const [isNavigateMinimized, setIsNavigateMinimized] = useState(false);
   const [isRoutesMinimized, setIsRoutesMinimized] = useState(false);
   const [isEditMinimized, setIsEditMinimized] = useState(false);
@@ -104,6 +111,37 @@ export default function Home() {
   const [refreshingMap, setRefreshingMap] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
+  const isAdmin = mode === "admin";
+
+  function handleModeSwitch() {
+    if (isAdmin) {
+      setMode("user");
+      if (activeTab === "edit") setActiveTab("navigate");
+      setEditStopMode(false);
+      setAddStopMode(false);
+      setCreatingRoute(false);
+      setEditingStop(null);
+      setDraftStop(null);
+      return;
+    }
+    setAdminLoginError(null);
+    setAdminPassword("");
+    setShowAdminLogin(true);
+  }
+
+  function handleAdminLogin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (adminUsername === "dinesh012" && adminPassword === "1914") {
+      setMode("admin");
+      setShowAdminLogin(false);
+      setAdminUsername("");
+      setAdminPassword("");
+      setAdminLoginError(null);
+    } else {
+      setAdminLoginError("Invalid username or password.");
+    }
+  }
+
   // Re-fetches stops (so changed bus-stop coordinates show up) and rebuilds
   // the currently displayed result (route detail or search) from fresh data so
   // the rendered path reflects the latest coordinates. Leaves the left-side
@@ -150,11 +188,13 @@ export default function Home() {
   // stop isn't saved yet — we just remember the new position so the user can
   // confirm or cancel.
   function handleStopDragged(stop: Stop, lat: number, lng: number) {
+    if (!isAdmin) return;
     setDraftStop({ ...stop, lat, lng });
     setStopMoveError(null);
   }
 
   async function handleSaveStopMove() {
+    if (!isAdmin) return;
     if (!editingStop || !draftStop) return;
     setStopMoveSaving(true);
     setStopMoveError(null);
@@ -185,12 +225,14 @@ export default function Home() {
   }
 
   function handleAddStopMapClick(lat: number, lng: number) {
+    if (!isAdmin) return;
     setPendingNewStopCoords({ lat, lng });
     setPendingNewStopName("");
     setStopEditSuccess(null);
   }
 
   async function handleConfirmAddStop() {
+    if (!isAdmin) return;
     if (!pendingNewStopCoords || !pendingNewStopName.trim()) {
       return;
     }
@@ -413,6 +455,7 @@ export default function Home() {
   }
 
   async function handleDrop(e: React.DragEvent, dropIndex: number) {
+    if (!isAdmin) return;
     e.preventDefault();
     if (draggedStopIndex === null || draggedStopIndex === dropIndex || !selectedRoute) {
       setDragOverStopIndex(null);
@@ -457,6 +500,7 @@ export default function Home() {
   }
 
   async function handleAddStopToRoute(stopId: string) {
+    if (!isAdmin) return;
     if (!selectedRoute) return;
     const newStopIds = [...selectedRoute.stops.map((s) => s.stop_id), stopId];
     setError(null);
@@ -484,6 +528,7 @@ export default function Home() {
   }
 
   async function handleDeleteStopFromRoute(sequenceNo: number, stopName: string) {
+    if (!isAdmin) return;
     if (!selectedRoute) return;
     if (selectedRoute.stops.length <= 2) {
       setError("A route must keep at least two stops — cannot remove any more.");
@@ -567,7 +612,7 @@ export default function Home() {
               )}
             </button>
 
-            <button
+            {isAdmin && <button
               type="button"
               onClick={() => handleTabChange("edit")}
               title={activeTab === "edit" && isPanelOpen ? "Minimize Edit section" : "Open Edit section"}
@@ -587,11 +632,80 @@ export default function Home() {
               {activeTab === "edit" && isPanelOpen && (
                 <span className="text-[10px] opacity-75 font-normal ml-0.5">•</span>
               )}
-            </button>
+            </button>}
           </nav>
         </div>
-
+        <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={handleModeSwitch}
+            onMouseDown={(e) => {
+              if (!isAdmin) {
+                e.preventDefault();
+                setAdminLoginError(null);
+                setShowAdminLogin(true);
+              }
+            }}
+            aria-expanded={showAdminLogin}
+            aria-controls="admin-login-panel"
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+              isAdmin
+                ? "bg-route-accent text-route-bg"
+                : "border border-route-accent text-route-accent hover:bg-route-accent/10"
+            }`}
+          >
+            {isAdmin ? "Switch to user" : "Switch to admin"}
+          </button>
+        </div>
       </header>
+
+      {showAdminLogin && !isAdmin && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40">
+          <form
+            id="admin-login-panel"
+            onSubmit={handleAdminLogin}
+            className="w-56 rounded-md border border-route-line bg-route-panel p-3 shadow-xl"
+          >
+            <p className="mb-2 text-xs font-medium text-white">Admin sign in</p>
+            <input
+              type="text"
+              value={adminUsername}
+              onChange={(e) => setAdminUsername(e.target.value)}
+              placeholder="Username"
+              autoFocus
+              className="mb-2 w-full rounded border border-route-line bg-route-bg px-2 py-1.5 text-xs text-neutral-200 outline-none focus:border-route-accent"
+            />
+            <div className="relative mb-2">
+              <input
+                type={showAdminPassword ? "text" : "password"}
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full rounded border border-route-line bg-route-bg px-2 py-1.5 pr-8 text-xs text-neutral-200 outline-none focus:border-route-accent"
+              />
+              <button
+                type="button"
+                aria-label={showAdminPassword ? "Hide password" : "Show password"}
+                onClick={() => setShowAdminPassword((visible) => !visible)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  {showAdminPassword ? <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></> : <><path d="m3 3 18 18" /><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.9 4.2A10.8 10.8 0 0 1 12 4c7 0 10 8 10 8a17.3 17.3 0 0 1-3.1 4.4M6.6 6.6C3.7 8.5 2 12 2 12s3 8 10 8a10.8 10.8 0 0 0 2.1-.2" /></>}
+                </svg>
+              </button>
+            </div>
+            {adminLoginError && <p className="mb-2 text-[11px] text-red-400">{adminLoginError}</p>}
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setShowAdminLogin(false)} className="flex-1 rounded border border-route-line bg-route-bg py-1.5 text-xs font-medium text-neutral-300 hover:text-white">
+                Cancel
+              </button>
+              <button type="submit" className="flex-1 rounded bg-route-accent py-1.5 text-xs font-semibold text-route-bg">
+                Sign in
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* ── Main Body: Sidebar + Map ── */}
       <div className="flex flex-1 overflow-hidden relative">
@@ -695,14 +809,14 @@ export default function Home() {
                     className="w-full bg-route-bg border border-route-line rounded px-3 py-2 text-sm text-neutral-200 outline-none focus:border-route-accent transition-colors"
                   />
 
-                  <button
+                  {isAdmin && <button
                     type="button"
                     onClick={() => setCreatingRoute(true)}
                     className="mt-2 rounded-md bg-route-accent text-route-bg font-medium py-1.5 text-xs transition-colors cursor-pointer"
                   >
                     Create route
-                  </button>
-                  {creatingRoute ? (
+                  </button>}
+                  {isAdmin && creatingRoute ? (
                     <div className="mt-2 flex flex-col gap-2 p-2 bg-route-bg/50 border border-route-line rounded-md">
                       <p className="text-xs text-neutral-400">Enter route name:</p>
                       <input
@@ -840,27 +954,27 @@ export default function Home() {
                       {selectedRoute.stops.map((s, i) => (
                         <li 
                           key={`${s.stop_id}-${i}`}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, i)}
-                          onDragOver={(e) => handleDragOver(e, i)}
-                          onDrop={(e) => handleDrop(e, i)}
+                          draggable={isAdmin}
+                          onDragStart={isAdmin ? (e) => handleDragStart(e, i) : undefined}
+                          onDragOver={isAdmin ? (e) => handleDragOver(e, i) : undefined}
+                          onDrop={isAdmin ? (e) => handleDrop(e, i) : undefined}
                           className={`flex items-center gap-2 text-neutral-300 group rounded-md p-1 cursor-grab active:cursor-grabbing transition-colors ${
                             dragOverStopIndex === i ? "bg-route-accent/20 border border-route-accent/50" : "hover:bg-route-bg/50 border border-transparent"
                           }`}
                         >
-                          <svg className="w-4 h-4 text-neutral-500 shrink-0 opacity-50 group-hover:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          {isAdmin && <svg className="w-4 h-4 text-neutral-500 shrink-0 opacity-50 group-hover:opacity-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="9" cy="12" r="1"/>
                             <circle cx="9" cy="5" r="1"/>
                             <circle cx="9" cy="19" r="1"/>
                             <circle cx="15" cy="12" r="1"/>
                             <circle cx="15" cy="5" r="1"/>
                             <circle cx="15" cy="19" r="1"/>
-                          </svg>
+                          </svg>}
                           <span className="text-neutral-500 w-6 shrink-0 text-right tabular-nums">
                             {i + 1}.
                           </span>
                           <span className="flex-1 truncate">{s.stop_name}</span>
-                          <button
+                          {isAdmin && <button
                             type="button"
                             onMouseDown={(e) => e.stopPropagation()}
                             onClick={(e) => {
@@ -878,11 +992,11 @@ export default function Home() {
                               <line x1="10" y1="11" x2="10" y2="17" />
                               <line x1="14" y1="11" x2="14" y2="17" />
                             </svg>
-                          </button>
+                          </button>}
                         </li>
                       ))}
                       
-                      {!addingStop ? (
+                      {isAdmin && (!addingStop ? (
                         <button
                           type="button"
                           onClick={() => setAddingStop(true)}
@@ -911,7 +1025,7 @@ export default function Home() {
                             Cancel
                           </button>
                         </div>
-                      )}
+                      ))}
                     </ol>
                   </div>
                 )}
@@ -919,7 +1033,7 @@ export default function Home() {
             )}
 
             {/* ── Edit Tab ── */}
-            {activeTab === "edit" && (
+            {activeTab === "edit" && isAdmin && (
               <div className="flex flex-col gap-2">
                 <button
                   type="button"
@@ -1035,11 +1149,11 @@ export default function Home() {
             userLocation={myLocation ? { lat: myLocation.lat, lng: myLocation.lng } : null}
             focusStop={myLocation?.stop ?? null}
             walkPath={myLocation?.walkPath ?? null}
-            editStopMode={editStopMode}
+            editStopMode={isAdmin && editStopMode}
             onSelectStopForEdit={handleSelectStopForEdit}
             editingStop={editingStop}
             onStopDragged={handleStopDragged}
-            addStopMode={addStopMode}
+            addStopMode={isAdmin && addStopMode}
             onMapClickForAddStop={handleAddStopMapClick}
           />
 
