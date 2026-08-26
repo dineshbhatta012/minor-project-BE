@@ -54,7 +54,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 - **Interactive Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Health Check:** [http://localhost:8000/health](http://localhost:8000/health)
-
+.........
 ### 3. Frontend Setup (Next.js)
 
 Navigate to the `frontend` folder and configure React:
