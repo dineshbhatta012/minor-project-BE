@@ -272,15 +272,16 @@ R2301205,S0193,9,Lainchour Chowk Bus Stop
 R2301205,S0087,10,Lainchaur stop
 R2301205,S0149,11,Lazimpat stop
 R2301205,S0082,12,Panipokhari stop
-R2301205,S0124,13,Teaching Hospital stop
-R2301205,S0030,14,Chakrapath Stop-- South
-R2301205,S0044,15,Narayan Gopal Chowk
-R2301205,S0158,16,Bansbari stop
-R2301205,S0231,17,Golfutar stop
-R2301205,S0038,18,Deuba Chowk stop
-R2301205,S0096,19,Budhanilkantha Micro Stand
-R2301205,S0176,20,Budhanilkantha Stop
-R2301205,S0144,21,Shivapuri Park Stop
+R2301205,S0337,13,Maharajgunj Chowk
+R2301205,S0124,14,Teaching Hospital stop
+R2301205,S0030,15,Chakrapath Stop-- South
+R2301205,S0044,16,Narayan Gopal Chowk
+R2301205,S0158,17,Bansbari stop
+R2301205,S0231,18,Golfutar stop
+R2301205,S0038,19,Deuba Chowk stop
+R2301205,S0096,20,Budhanilkantha Micro Stand
+R2301205,S0176,21,Budhanilkantha Stop
+R2301205,S0144,22,Shivapuri Park Stop
 R2301306,S0024,1,Balkumari Stop
 R2301306,S_404,2,koteshwor west stop
 R2301306,S0203,3,Tinkune Subidhanagar
@@ -970,8 +971,9 @@ R3101629,S0032,7,Dhapakhel Stop
 R3102120,S0112,1,Lagankhel Stop
 R3102120,S0223,2,Lalitpur Industrial Estate
 R3102120,S0020,3,Gwarko Chowk Stop
-R3102120,S0104,4,Lubhu Bus Stop
-R3102120,S0200,5,Lamatar
+R3102120,S0264,4,Sana Gaun Bus Stop
+R3102120,S0104,5,Lubhu Bus Stop
+R3102120,S0200,6,Lamatar
 R3102124,S0100,1,RNAC stop
 R3102124,S0171,2,Bir Hospital
 R3102124,S0166,3,Kantipath
