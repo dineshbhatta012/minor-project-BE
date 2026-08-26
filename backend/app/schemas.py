@@ -8,6 +8,8 @@ class StopOut(BaseModel):
     lng: float
     is_interchange: bool
     is_major_stop: bool
+    congestion_score: float = 0.0
+    congestion_loss: float = 0.0
 
 
 class StopCreateRequest(BaseModel):
@@ -39,6 +41,7 @@ class RouteLegOut(BaseModel):
     # that server-side to avoid coupling the API's response time to a
     # third-party routing service's latency/rate limits.
     path: list[tuple[float, float]]  # [(lat, lng), ...]
+    stop_scores: list[float] = []
 
 
 class RouteSearchResult(BaseModel):

@@ -7,6 +7,8 @@ export interface Stop {
   lng: number;
   is_interchange: boolean;
   is_major_stop: boolean;
+  congestion_score?: number;
+  congestion_loss?: number;
 }
 
 export interface RouteLeg {
@@ -21,6 +23,11 @@ export interface RouteLeg {
   // After OSRM enrichment, the original stop coordinates are preserved here
   // so bus-stop markers remain at the correct positions.
   stopCoords?: [number, number][];
+  // Congestion scores parallel to path — one score per stop in route order.
+  // Populated from backend's stop_scores field.
+  stop_scores?: number[];
+  // After OSRM enrichment, interpolated scores parallel to path (road geometry).
+  pathScores?: number[];
 }
 
 export interface RouteSearchResult {

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.routing.congestion import get_congestion
 from app.routing.graph_builder import get_cached_graph
 from app.routing.pathfinding import find_direct_route_bfs, find_route_dijkstra, path_to_legs
 from app.schemas import RouteLegOut, RouteSearchRequest, RouteSearchResult, StopOut
@@ -95,15 +96,29 @@ def search_route(payload: RouteSearchRequest, db: Session = Depends(get_db)):
                 check_direct,
             )
 
+    congestion = get_congestion()
+
     legs_out = [
         RouteLegOut(
             route_id=leg["route_id"],
             route_name=leg["route_name"],
             operator=leg.get("operator") or None,
-            from_stop=StopOut(**graph_data.stops_by_id[leg["from_stop_id"]]),
-            to_stop=StopOut(**graph_data.stops_by_id[leg["to_stop_id"]]),
+            from_stop=StopOut(
+                **graph_data.stops_by_id[leg["from_stop_id"]],
+                congestion_score=congestion.get(leg["from_stop_id"], {"score": 0.0, "loss": 0.0})["score"],
+                congestion_loss=congestion.get(leg["from_stop_id"], {"score": 0.0, "loss": 0.0})["loss"],
+            ),
+            to_stop=StopOut(
+                **graph_data.stops_by_id[leg["to_stop_id"]],
+                congestion_score=congestion.get(leg["to_stop_id"], {"score": 0.0, "loss": 0.0})["score"],
+                congestion_loss=congestion.get(leg["to_stop_id"], {"score": 0.0, "loss": 0.0})["loss"],
+            ),
             path=[
                 (graph_data.stops_by_id[sid]["lat"], graph_data.stops_by_id[sid]["lng"])
+                for sid in leg["stop_ids"]
+            ],
+            stop_scores=[
+                congestion.get(sid, {"score": 0.0, "loss": 0.0})["score"]
                 for sid in leg["stop_ids"]
             ],
         )
@@ -119,12 +134,24 @@ def search_route(payload: RouteSearchRequest, db: Session = Depends(get_db)):
             route_id="walk",
             route_name=f"Walk to {to_stop['stop_name']}",
             operator=None,
-            from_stop=StopOut(**from_stop),
-            to_stop=StopOut(**to_stop),
+            from_stop=StopOut(
+                **from_stop,
+                congestion_score=congestion.get(from_id, {"score": 0.0, "loss": 0.0})["score"],
+                congestion_loss=congestion.get(from_id, {"score": 0.0, "loss": 0.0})["loss"],
+            ),
+            to_stop=StopOut(
+                **to_stop,
+                congestion_score=congestion.get(to_id, {"score": 0.0, "loss": 0.0})["score"],
+                congestion_loss=congestion.get(to_id, {"score": 0.0, "loss": 0.0})["loss"],
+            ),
             path=[
                 (from_stop["lat"], from_stop["lng"]),
                 (to_stop["lat"], to_stop["lng"])
-            ]
+            ],
+            stop_scores=[
+                congestion.get(from_id, {"score": 0.0, "loss": 0.0})["score"],
+                congestion.get(to_id, {"score": 0.0, "loss": 0.0})["score"],
+            ],
         )
 
     if target_origin_id != origin_id:

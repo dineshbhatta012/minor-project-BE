@@ -763,44 +763,57 @@ export default function Home() {
                       {result.transfer_count === 0 ? "Direct route" : `${result.transfer_count} transfer`}
                       {result.total_distance_km ? ` · ${result.total_distance_km} km` : ""}
                     </p>
-                    {result.legs.map((leg) => (
-                      <div key={leg.route_id} className="bg-route-panel rounded-md px-3 py-2">
-                        <p className="flex items-center gap-2 text-base font-semibold text-neutral-400">
-                          <svg
-                            aria-hidden="true"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="shrink-0"
-                          >
-                            {leg.route_id === "walk" ? (
-                              <>
-                                <circle cx="13" cy="5" r="2" />
-                                <path d="m9 22 2-7 2 2 3 5" />
-                                <path d="m11 15-2-4 3-3 3 2" />
-                                <path d="m12 8 1-3" />
-                              </>
-                            ) : (
-                              <>
-                                <rect x="4" y="3" width="16" height="17" rx="2" />
-                                <path d="M4 11h16M7 7h3M14 7h3" />
-                                <circle cx="8" cy="17" r="1.5" />
-                                <circle cx="16" cy="17" r="1.5" />
-                              </>
-                            )}
-                          </svg>
-                          {leg.from_stop.stop_name} → {leg.to_stop.stop_name}
-                        </p>
-                        <p className="mt-1 text-xs font-normal text-neutral-500">
-                          {leg.route_name} <span>({leg.route_id})</span>
-                        </p>
-                      </div>
-                    ))}
+                    {result.legs.map((leg, legIdx) => {
+                      const borderColor =
+                        leg.route_id === "walk"
+                          ? "#64748b"
+                          : legIdx % 2 === 0
+                            ? "#ffffff"
+                            : "#000000";
+                      return (
+                        <div
+                          key={`${leg.route_id}-${legIdx}`}
+                          className="bg-route-panel rounded-md px-3 py-2"
+                          style={{ borderLeft: `4px solid ${borderColor}` }}
+                        >
+                          <p className="flex items-center gap-2 text-base font-semibold text-neutral-400">
+                            <svg
+                              aria-hidden="true"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="shrink-0"
+                              style={{ color: borderColor }}
+                            >
+                              {leg.route_id === "walk" ? (
+                                <>
+                                  <circle cx="13" cy="5" r="2" />
+                                  <path d="m9 22 2-7 2 2 3 5" />
+                                  <path d="m11 15-2-4 3-3 3 2" />
+                                  <path d="m12 8 1-3" />
+                                </>
+                              ) : (
+                                <>
+                                  <rect x="4" y="3" width="16" height="17" rx="2" />
+                                  <path d="M4 11h16M7 7h3M14 7h3" />
+                                  <circle cx="8" cy="17" r="1.5" />
+                                  <circle cx="16" cy="17" r="1.5" />
+                                </>
+                              )}
+                            </svg>
+                            {leg.from_stop.stop_name} → {leg.to_stop.stop_name}
+                          </p>
+                          <p className="mt-1 text-xs font-normal text-neutral-500">
+                            {leg.route_name} <span>({leg.route_id})</span>
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </>

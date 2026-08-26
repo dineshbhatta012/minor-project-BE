@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.session import get_db
+from app.routing.congestion import get_congestion
 from app.routing.graph_builder import refresh_graph
 from app.schemas import StopOut, StopUpdateRequest, StopCreateRequest
 
@@ -29,7 +30,15 @@ def list_stops(db: Session = Depends(get_db)):
             """
         )
     ).mappings()
-    return [StopOut(**dict(r)) for r in rows]
+    congestion = get_congestion()
+    return [
+        StopOut(
+            **dict(r),
+            congestion_score=congestion.get(r["stop_id"], {"score": 0.0, "loss": 0.0})["score"],
+            congestion_loss=congestion.get(r["stop_id"], {"score": 0.0, "loss": 0.0})["loss"],
+        )
+        for r in rows
+    ]
 
 
 @router.get("/nearest", response_model=list[StopOut])
@@ -55,7 +64,15 @@ def nearest_stops(
         ),
         {"lat": lat, "lng": lng, "limit": limit},
     ).mappings()
-    result = [StopOut(**dict(r)) for r in rows]
+    congestion = get_congestion()
+    result = [
+        StopOut(
+            **dict(r),
+            congestion_score=congestion.get(r["stop_id"], {"score": 0.0, "loss": 0.0})["score"],
+            congestion_loss=congestion.get(r["stop_id"], {"score": 0.0, "loss": 0.0})["loss"],
+        )
+        for r in rows
+    ]
     if not result:
         raise HTTPException(status_code=404, detail="No active stops found")
     return result
@@ -160,7 +177,12 @@ def update_stop_coordinates(stop_id: str, payload: StopUpdateRequest, db: Sessio
 
     _update_stop_in_csv(stop_id, payload.lat, payload.lng)
     refresh_graph(db)
-    return StopOut(**dict(row))
+    congestion = get_congestion()
+    return StopOut(
+        **dict(row),
+        congestion_score=congestion.get(row["stop_id"], {"score": 0.0, "loss": 0.0})["score"],
+        congestion_loss=congestion.get(row["stop_id"], {"score": 0.0, "loss": 0.0})["loss"],
+    )
 
 
 def _add_stop_to_csv(stop_id: str, stop_name: str, lat: float, lng: float, is_interchange: bool, is_major_stop: bool) -> int:
@@ -268,4 +290,9 @@ def create_stop(payload: StopCreateRequest, db: Session = Depends(get_db)):
     )
     
     refresh_graph(db)
-    return StopOut(**dict(row))
+    congestion = get_congestion()
+    return StopOut(
+        **dict(row),
+        congestion_score=congestion.get(row["stop_id"], {"score": 0.0, "loss": 0.0})["score"],
+        congestion_loss=congestion.get(row["stop_id"], {"score": 0.0, "loss": 0.0})["loss"],
+    )

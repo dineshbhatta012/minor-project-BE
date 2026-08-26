@@ -8,6 +8,7 @@ from app.api import admin, routes, routing, stops
 from app.core.config import get_settings
 from app.db.session import SessionLocal
 from app.routing import graph_builder
+from app.routing.congestion import get_congestion
 
 logger = logging.getLogger("uvicorn.error")
 settings = get_settings()
@@ -30,6 +31,12 @@ async def lifespan(app: FastAPI):
         logger.exception("Failed to build routing graph at startup")
     finally:
         db.close()
+
+    try:
+        congestion = get_congestion()
+        logger.info("Congestion data loaded: %d stops with scores", len(congestion))
+    except Exception:
+        logger.exception("Failed to load congestion data at startup")
 
     yield
 

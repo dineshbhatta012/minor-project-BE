@@ -6,11 +6,20 @@ import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap, useMapEvent
 import L from "leaflet";
 import { RouteSearchResult, Stop } from "@/types/route";
 import { Place } from "@/lib/geocode";
+import { getCongestionColor, CONGESTION_COLORS } from "@/lib/congestion";
 
 // Kathmandu Valley center, used as the default map view.
 const VALLEY_CENTER: [number, number] = [27.7041, 85.32];
 
-const LEG_COLORS = ["#3f4058", "#9696b5", "#c49f3b", "#6f9670"];
+// Alternating white and black border colors for differentiating transit routes
+export const LEG_BORDER_COLORS = [
+  "#ffffff", // White
+  "#000000", // Black
+];
+
+const LEG_COLORS = ["#ffffff", "#000000"];
+
+const GRADIENT_STRIDE = 3;
 
 // Build a Leaflet divIcon that renders bus-icon.png clipped to a circle
 // with a coloured border ring to distinguish stop types.
@@ -494,6 +503,14 @@ export default function BusMap({
                 ? `Click to edit — ${stop.stop_name}`
                 : stop.stop_name}
           </span>
+          {stop.congestion_loss != null && stop.congestion_loss > 0 && (
+            <>
+              <br />
+              <span className="text-xs" style={{ color: "#999" }}>
+                Congestion: {stop.congestion_loss.toLocaleString()}
+              </span>
+            </>
+          )}
         </Tooltip>
       </Marker>
     );
@@ -579,40 +596,83 @@ export default function BusMap({
       {!selecting && !result && originStop && stopMarker(originStop, false)}
       {!selecting && !result && destinationStop && stopMarker(destinationStop, false)}
 
-      {result?.legs.map((leg, i) => {
-        const color = LEG_COLORS[i % LEG_COLORS.length];
-        const legStopIcon = makeBusStopIcon(18, color);
-        const isLastLeg = i === result.legs.length - 1;
-        // Use original stop coordinates for markers (falls back to path
-        // when stopCoords hasn't been set, e.g. before OSRM enrichment).
-        const markerCoords = leg.stopCoords ?? leg.path;
-        const wps = getWaypointsForLeg(i);
+      {(() => {
+        let transitLegIndex = 0;
+        return result?.legs.map((leg, i) => {
+          const isWalk = leg.route_id === "walk";
+          const currentTransitIdx = isWalk ? 0 : transitLegIndex++;
+          const borderColor = isWalk
+            ? "#475569"
+            : LEG_BORDER_COLORS[currentTransitIdx % LEG_BORDER_COLORS.length];
+          const legStopIcon = makeBusStopIcon(18, borderColor);
+          const isLastLeg = i === result.legs.length - 1;
+          // Use original stop coordinates for markers (falls back to path
+          // when stopCoords hasn't been set, e.g. before OSRM enrichment).
+          const markerCoords = leg.stopCoords ?? leg.path;
+          const wps = getWaypointsForLeg(i);
 
-        const isWalk = leg.route_id === "walk";
-
-        return (
-          <Fragment key={`${leg.route_id}-${i}`}>
-            {/* Outline Polyline to make the route easily recognized */}
-            <Polyline
-              positions={leg.path}
-              pathOptions={{ color: "#3f4058", weight: isWalk ? 0 : 12, opacity: 0.45 }}
-            />
+          return (
+            <Fragment key={`${leg.route_id}-${i}`}>
+              {/* Outline Polyline with distinct color per leg to clearly differentiate transit routes */}
+              <Polyline
+                positions={leg.path}
+                pathOptions={{ 
+                  color: isWalk ? "#475569" : borderColor, 
+                  weight: isWalk ? 0 : 13, 
+                  opacity: isWalk ? 0 : 1.0,
+                  lineCap: "round",
+                  lineJoin: "round",
+                }}
+              />
             {/* Main colored Polyline following actual road geometry */}
-            <Polyline
-              positions={leg.path}
-              pathOptions={{ 
-                color: isWalk ? "#3f4058" : color, 
-                weight: isWalk ? 5 : 7,
-                dashArray: isWalk ? "5 10" : undefined 
-              }}
-            />
+            {isWalk ? (
+              <Polyline
+                positions={leg.path}
+                pathOptions={{ 
+                  color: "#3f4058", 
+                  weight: 5,
+                  dashArray: "5 10" 
+                }}
+              />
+            ) : leg.pathScores && leg.pathScores.length === leg.path.length ? (
+              // Congestion gradient: one short polyline per GRADIENT_STRIDE points
+              (() => {
+                const segments: React.ReactNode[] = [];
+                for (let si = 0; si < leg.path.length - 1; si += GRADIENT_STRIDE) {
+                  const end = Math.min(si + GRADIENT_STRIDE, leg.path.length - 1);
+                  const slicePositions = leg.path.slice(si, end + 1);
+                  const avgScore = (leg.pathScores[si] + leg.pathScores[end]) / 2;
+                  segments.push(
+                    <Polyline
+                      key={`cong-${i}-${si}`}
+                      positions={slicePositions}
+                      pathOptions={{
+                        color: getCongestionColor(avgScore),
+                        weight: 7,
+                        opacity: 0.9,
+                      }}
+                    />
+                  );
+                }
+                return <>{segments}</>;
+              })()
+            ) : (
+              <Polyline
+                positions={leg.path}
+                pathOptions={{ 
+                  color: borderColor, 
+                  weight: 7,
+                  opacity: 0.9 
+                }}
+              />
+            )}
 
             {/* Draggable waypoint handles — only in edit-route mode */}
             {editRouteMode && onWaypointChange && (
               <LegRouteEditor
                 legIndex={i}
                 path={leg.path}
-                color={color}
+                color={borderColor}
                 waypoints={wps}
                 onWaypointChange={onWaypointChange}
                 onDragging={handleDragging}
@@ -641,6 +701,14 @@ export default function BusMap({
                   {stop && (
                     <Tooltip direction="top" offset={[0, -5]} opacity={0.9}>
                       <span className="font-medium text-xs">{stop.stop_name}</span>
+                      {stop.congestion_loss != null && stop.congestion_loss > 0 && (
+                        <>
+                          <br />
+                          <span className="text-xs" style={{ color: "#999" }}>
+                            Congestion: {stop.congestion_loss.toLocaleString()}
+                          </span>
+                        </>
+                      )}
                     </Tooltip>
                   )}
                 </Marker>
@@ -648,7 +716,40 @@ export default function BusMap({
             })}
           </Fragment>
         );
-      })}
+      });
+      })()}
+
+      {/* Congestion legend */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 24,
+          right: 12,
+          zIndex: 1000,
+          background: "rgba(255,255,255,0.92)",
+          borderRadius: 8,
+          padding: "8px 12px",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+          fontSize: 11,
+          lineHeight: "16px",
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      >
+        <div style={{ fontWeight: 600, marginBottom: 4, color: "#111827" }}>Congestion</div>
+        <div
+          style={{
+            width: 140,
+            height: 10,
+            borderRadius: 4,
+            background: `linear-gradient(to right, ${CONGESTION_COLORS.join(", ")})`,
+          }}
+        />
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2, color: "#4b5563" }}>
+          <span>Free-flowing</span>
+          <span>Extreme</span>
+        </div>
+      </div>
     </MapContainer>
   );
 }

@@ -52,9 +52,12 @@ export async function getRoadPath(
  */
 async function getEnrichedPath(
   stopCoords: [number, number][],
-  profile: "driving" | "foot" = "driving"
-): Promise<[number, number][]> {
-  if (stopCoords.length < 2) return stopCoords;
+  profile: "driving" | "foot" = "driving",
+  stopScores?: number[]
+): Promise<{ path: [number, number][]; scores: number[] }> {
+  if (stopCoords.length < 2) {
+    return { path: stopCoords, scores: stopScores ?? stopCoords.map(() => 0) };
+  }
 
   // Fire all pair requests in parallel for speed.
   const pairPromises: Promise<[number, number][] | null>[] = [];
@@ -68,24 +71,42 @@ async function getEnrichedPath(
 
   // Stitch segments together, dropping duplicate junction points.
   const stitched: [number, number][] = [];
+  const stitchedScores: number[] = [];
+  const scores = stopScores ?? stopCoords.map(() => 0);
+
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
+    const fromScore = scores[i] ?? 0;
+    const toScore = scores[i + 1] ?? 0;
+
     if (seg && seg.length > 0) {
+      // Interpolate scores across this segment's points
+      const segScores: number[] = seg.map((_, j) => {
+        const t = seg.length === 1 ? 0 : j / (seg.length - 1);
+        return fromScore + (toScore - fromScore) * t;
+      });
+
       // Avoid duplicate point at the junction with the previous segment.
       const start = stitched.length > 0 ? 1 : 0;
       for (let j = start; j < seg.length; j++) {
         stitched.push(seg[j]);
+        stitchedScores.push(segScores[j]);
       }
     } else {
       // OSRM failed for this pair — fall back to a straight line for it.
       if (stitched.length === 0) {
         stitched.push(stopCoords[i]);
+        stitchedScores.push(fromScore);
       }
       stitched.push(stopCoords[i + 1]);
+      stitchedScores.push(toScore);
     }
   }
 
-  return stitched.length >= 2 ? stitched : stopCoords;
+  if (stitched.length >= 2) {
+    return { path: stitched, scores: stitchedScores };
+  }
+  return { path: stopCoords, scores };
 }
 
 /**
@@ -103,12 +124,17 @@ export async function enrichRouteWithRoadGeometry(
 
   const enrichedLegs = await Promise.all(
     result.legs.map(async (leg) => {
-      const roadPath = await getEnrichedPath(leg.path);
+      const { path: roadPath, scores } = await getEnrichedPath(
+        leg.path,
+        "driving",
+        leg.stop_scores
+      );
       return {
         ...leg,
         // Keep original stop positions for markers; use road path for polyline.
         stopCoords: leg.path,
         path: roadPath,
+        pathScores: scores,
       };
     })
   );
