@@ -1129,7 +1129,7 @@ R3232098,S0149,4,Lazimpat stop
 R3232098,S_391,5,lainchaur chowk
 R3232098,S0152,6,Jamal
 R3232098,S0166,7,Kantipath
-R3232098,S0385,8,Unknown Stop
+R3232098,S0067,8,Shahid Gate
 R3232098,S0056,9,Tripureshwor
 R3232098,S0185,10,Thapathali
 R3232098,S0063,11,Kupondole stop
@@ -1253,10 +1253,94 @@ R3351750,S0083,5,Gyaneshwor Chowk
 R3351750,S0338,6,Kamalpokhari
 R3351750,S0339,7,Hattisar
 R3351750,S0013,8,Ratna Park
-R3351751,S0125,1,Attarkhel
-R3351751,S0207,2,ASCOL Stop
-R3351751,S0207,3,ASCOL Stop
-R3351751,S0177,4,Balaju Chowk Bus Stop
+R3351756,S_395,1,KALANKI
+R3351756,S_418,2,balkhu stop east
+R3351756,S_414,3,saanepa height east
+R3351756,S_410,4,ekantakuna east
+R3351756,S0011,5,Satdobato Chowk Stop
+R3351756,S0024,6,Balkumari Stop
+R3351756,S_404,7,koteshwor west stop
+R3351756,S0017,8,Tinkune Stop
+R3351756,S0053,9,Gairigaun Stop
+R3351756,S0139,10,Sinamangal/Ring Road Stop सिनामंगल
+R3351756,S0070,11,Airport Bus Station
+R3351756,S0347,12,Tilganga
+R3351756,S0204,13,Gaushala Chowk Stop
+R3351756,S0052,14,JayaBageshwari Stop
+R3351756,S0195,15,Chabahil चाबाहील
+R3351756,S0355,16,Gopikrishna
+R3351756,S0217,17,Sukedhara Stop
+R3351756,S0118,18,Dhumbarahi
+R3351756,S0354,19,Chappal Karkhana
+R3351756,S0030,20,Chakrapath Stop-- South
+R3351756,S0065,21,Basundhara
+R3351756,S0169,22,Gongabu Chowk
+R3351756,S0174,23,Naya Bus Park
+R3351756,S0349,24,Macchapokhari
+R3351756,S0177,25,Balaju Chowk Bus Stop
+R3351756,S0212,26,Banasthali
+R3351756,S0228,27,Dhungedhara
+R3351756,S0353,28,Sano Bharyang
+R3351756,S0162,29,Thulo Bharang Stop
+R3351756,S0211,30,Swayambhu Parikarma
+R3351756,S0090,31,Sitapaila Stop
+R3351756,S0246,32,Bafal
+R3351756,S_395,33,KALANKI
+R3351757,S0183,1,Dhulikhel Stop
+R3351757,S0001,2,KU Bus Stand (26 Kilo)
+R3351757,S0136,3,Banepa
+R3351757,S0121,4,Banepa Tindobato
+R3351757,S0153,5,Poolbazar Bus Stop (Pulbazar)
+R3351757,S0160,6,Bansdol
+R3351757,S0117,7,Sanga
+R3351757,S0190,8,Jagati
+R3351757,S0178,9,Adarsha
+R3351757,S0089,10,Suryabinayek
+R3351757,S0019,11,Barahi Movies
+R3351757,S0229,12,Chundevi Bus Stop (Chunudevi)
+R3351757,S_398,13,sallaghari
+R3351757,S0098,14,Tinkune Bhaktapur
+R3351757,S_409,15,srijananagar bhaktapur
+R3351757,S_412,16,radhe radhe south
+R3351757,S_413,17,madhyapur hospital(thimi)
+R3351757,S0007,18,Chardobato
+R3351757,S0092,19,Gathaghar
+R3351757,S_403,20,jadibuti west
+R3351757,S_404,21,koteshwor west stop
+R3351757,S0203,22,Tinkune Subidhanagar
+R3351757,S_405,23,civil hospital stop
+R3351757,S0304,24,Naya Baneshwor Chowk
+R3351757,S0034,25,Buddhanagar Stop
+R3351757,S0097,26,Maitighar
+R3351757,S_394,27,bhadrakali
+R3351757,S0100,28,RNAC stop
+R3351757,S0013,29,Ratna Park
+R3351758,S0247,1,Bhaisepati
+R3351758,S0258,2,Nakkhu (bus stop)
+R3351758,S_421,3,ekantakuna north
+R3351758,S_422,4,jawalakhel south
+R3351758,S0234,5,Pulchowk
+R3351758,S0142,6,UN Stop
+R3351758,S0237,7,Harihar Bhawan
+R3351758,S_423,8,nabil bank west
+R3351758,S0168,9,Jwagal
+R3351758,S0063,10,Kupondole stop
+R3351758,S0185,11,Thapathali
+R3351758,S_411,12,Thapathali College
+R3351758,S0097,13,Maitighar
+R3351758,S0099,14,Babarmahal Stop West
+R3351758,S_406,15,bizulibazar pul
+R3351758,S0069,16,Naya Baneshwor Tampoo Station
+R3351758,S0127,17,Shantinagar Stop
+R3351758,S0053,18,Gairigaun Stop
+R3351758,S0139,19,Sinamangal/Ring Road Stop सिनामंगल
+R3351758,S0070,20,Airport Bus Station
+R3351758,S0204,21,Gaushala Chowk Stop
+R3351758,S0052,22,JayaBageshwari Stop
+R3351758,S0195,23,Chabahil चाबाहील
+R3351758,S0172,24,Hyatt Regency
+R3351758,S0026,25,Boudha
+R3351758,S0135,26,Jorpati
 R-NY-03,S0372,1,Pepsicola
 R-NY-03,S_403,2,jadibuti west
 R-NY-03,S_404,3,koteshwor west stop
@@ -1266,18 +1350,19 @@ R-NY-03,S0056,6,Tripureshwor
 R-NY-03,S0276,7,Tek (Teku)
 R-NY-03,S0023,8,Kalimati
 R-NY-03,S_418,9,balkhu stop east
-R-NY-03,S_419,10,ekanta kuna west
-R-NY-03,S0103,11,Jawlakhel Stop
-R-NY-03,S0234,12,Pulchowk
-R-NY-03,S0237,13,Harihar Bhawan
-R-NY-03,S0063,14,Kupondole stop
-R-NY-03,S_411,15,Thapathali College
-R-NY-03,S_406,16,bizulibazar pul
-R-NY-03,S0069,17,Naya Baneshwor Tampoo Station
-R-NY-03,S0127,18,Shantinagar Stop
-R-NY-03,S0107,19,Koteshwor Stop
-R-NY-03,S_415,20,JADIBUTI
-R-NY-03,S0372,21,Pepsicola
+R-NY-03,S_414,10,saanepa height east
+R-NY-03,S_419,11,ekanta kuna west
+R-NY-03,S0103,12,Jawlakhel Stop
+R-NY-03,S0234,13,Pulchowk
+R-NY-03,S0237,14,Harihar Bhawan
+R-NY-03,S0063,15,Kupondole stop
+R-NY-03,S_411,16,Thapathali College
+R-NY-03,S_406,17,bizulibazar pul
+R-NY-03,S0069,18,Naya Baneshwor Tampoo Station
+R-NY-03,S0127,19,Shantinagar Stop
+R-NY-03,S0107,20,Koteshwor Stop
+R-NY-03,S_415,21,JADIBUTI
+R-NY-03,S0372,22,Pepsicola
 R-NY-04,S0373,1,Babachowk
 R-NY-04,S0374,2,Gothatar Height/Tarigaon
 R-NY-04,S0375,3,Gothatar Chowk
