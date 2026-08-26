@@ -104,16 +104,49 @@ export default function Home() {
   const [refreshingMap, setRefreshingMap] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
-  // Re-fetches stops (so changed bus-stop coordinates show up) and rebuilds
-  // the currently displayed result (route detail or search) from fresh data so
-  // the rendered path reflects the latest coordinates. Leaves the left-side
-  // form untouched.
+    // Reset any temporary interactive modes when switching tabs
+    if (tab !== "edit") {
+      setEditStopMode(false);
+      setAddStopMode(false);
+      setEditingStop(null);
+      setDraftStop(null);
+      setPendingNewStopCoords(null);
+      setStopMoveError(null);
+    }
+    if (tab !== "navigate") {
+      setMapSelectionMode(null);
+    }
+  }
+
+  // Helper to build a RouteSearchResult from a RouteDetail
+  async function buildRouteResult(detail: RouteDetail): Promise<RouteSearchResult> {
+    const data: RouteSearchResult = {
+      found: true,
+      transfer_count: 0,
+      total_distance_km: detail.approx_distance_km ?? undefined,
+      legs: [
+        {
+          route_id: detail.route_id,
+          route_name: detail.route_name,
+          from_stop: detail.stops[0],
+          to_stop: detail.stops[detail.stops.length - 1],
+          path: detail.stops.map((s) => [s.lat, s.lng]),
+        },
+      ],
+    };
+    return enrichRouteWithRoadGeometry(data);
+  }
+
+  // Refresh map data
   async function handleRefreshMap() {
     setRefreshingMap(true);
     setRefreshError(null);
     try {
       const freshStops = await fetchStops();
       setStops(freshStops);
+      const freshRoutes = await fetchRoutes();
+      setRoutes(freshRoutes);
+
       if (selectedRoute) {
         const detail = await fetchRouteDetail(selectedRoute.route_id);
         setSelectedRoute(detail);
@@ -275,8 +308,6 @@ export default function Home() {
           setLocationError("Couldn't find any bus stop nearby.");
           return;
         }
-        // Trace the actual walking route to the stop (OSRM foot profile),
-        // falling back to a straight line if the foot route isn't available.
         const footPath =
           (await getRoadPath(latitude, longitude, nearest.stop.lat, nearest.stop.lng, "foot")) ??
           [
@@ -337,17 +368,6 @@ export default function Home() {
     setLocationError(null);
   }
 
-  useEffect(() => {
-    fetchStops()
-      .then(setStops)
-      .catch(() =>
-        setStopsError(
-          "Couldn't reach the backend. Is it running at NEXT_PUBLIC_API_URL (default http://localhost:8000)?"
-        )
-      )
-      .finally(() => setStopsLoading(false));
-  }, []);
-
   async function handleSearch(originStopId: string, destinationStopId: string) {
     setLoading(true);
     setError(null);
@@ -357,7 +377,6 @@ export default function Home() {
         origin_stop_id: originStopId,
         destination_stop_id: destinationStopId,
       });
-      // Enrich straight-line paths with actual road geometry from OSRM.
       const enriched = await enrichRouteWithRoadGeometry(data);
       setResult(enriched);
     } catch {
@@ -427,7 +446,6 @@ export default function Home() {
     const newStopIds = newStops.map((s) => s.stop_id);
     const previousRoute = { ...selectedRoute };
 
-    // Optimistic UI update
     setSelectedRoute({ ...selectedRoute, stops: newStops });
     setDragOverStopIndex(null);
     setDraggedStopIndex(null);
@@ -504,7 +522,6 @@ export default function Home() {
             : r
         )
       );
-      // Re-select the (updated) route so the map path and sequence refresh.
       await handleSelectRoute(selectedRoute.route_id);
       setShowSequence(true);
     } catch {
