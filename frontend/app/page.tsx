@@ -763,19 +763,22 @@ export default function Home() {
                       {result.transfer_count === 0 ? "Direct route" : `${result.transfer_count} transfer`}
                       {result.total_distance_km ? ` · ${result.total_distance_km} km` : ""}
                     </p>
-                    {result.legs.map((leg, legIdx) => {
-                      const borderColor =
-                        leg.route_id === "walk"
+                    {(() => {
+                      let transitLegIndex = 0;
+                      return result.legs.map((leg, legIdx) => {
+                        const isWalk = leg.route_id === "walk";
+                        const currentTransitIdx = isWalk ? 0 : transitLegIndex++;
+                        const borderColor = isWalk
                           ? "#64748b"
-                          : legIdx % 2 === 0
+                          : currentTransitIdx % 2 === 0
                             ? "#ffffff"
                             : "#000000";
-                      return (
-                        <div
-                          key={`${leg.route_id}-${legIdx}`}
-                          className="bg-route-panel rounded-md px-3 py-2"
-                          style={{ borderLeft: `4px solid ${borderColor}` }}
-                        >
+                        return (
+                          <div
+                            key={`${leg.route_id}-${legIdx}`}
+                            className="bg-route-panel rounded-md px-3 py-2"
+                            style={{ borderLeft: `4px solid ${borderColor}` }}
+                          >
                           <p className="flex items-center gap-2 text-base font-semibold text-neutral-400">
                             <svg
                               aria-hidden="true"
@@ -813,7 +816,8 @@ export default function Home() {
                           </p>
                         </div>
                       );
-                    })}
+                    });
+                    })()}
                   </div>
                 )}
               </>
