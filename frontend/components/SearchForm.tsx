@@ -63,7 +63,7 @@ export default function SearchForm({
               type="button"
               onClick={onUseMyLocation}
               disabled={disabled || locating}
-              className="text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer border-0 bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white disabled:opacity-50"
+              className="text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer bg-route-accent border border-route-accent text-neutral-300 hover:border-route-accent hover:text-white disabled:opacity-50"
               title="Set the nearest bus stop from your current location as origin"
             >
               {locating ? "Locating…" : "Your location"}
@@ -74,8 +74,8 @@ export default function SearchForm({
               disabled={disabled}
               className={`text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer border-0 ${
                 mapSelectionMode === "from"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent disabled:opacity-50"
+                  ? "bg-route-accent border border-route-accent text-route-bg"
+                  : "bg-route-accent border border-route-accent text-neutral-300 hover:border-route-accent disabled:opacity-50"
               }`}
             >
               Choose from map
@@ -103,7 +103,7 @@ export default function SearchForm({
           onClick={onSwap}
           disabled={disabled || (!originName && !destinationName)}
           title="Swap origin and destination"
-          className="rounded-full bg-route-bg border border-route-line p-1.5 text-neutral-300 hover:border-route-accent hover:text-white disabled:opacity-50 transition-colors cursor-pointer"
+          className="rounded-full bg-route-accent border border-route-accent p-1.5 text-neutral-300 hover:border-route-accent hover:text-white disabled:opacity-50 transition-colors cursor-pointer"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M7 4l-4 4 4 4" />
@@ -125,8 +125,8 @@ export default function SearchForm({
             disabled={disabled}
             className={`text-xs px-2 py-0.5 rounded font-medium transition-colors cursor-pointer border-0 ${
               mapSelectionMode === "to"
-                ? "bg-amber-600 text-white"
-                : "bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent disabled:opacity-50"
+                ? "bg-route-accent border border-route-accent text-route-bg"
+                : "bg-route-accent border border-route-accent text-neutral-300 hover:border-route-accent disabled:opacity-50"
             }`}
           >
             Choose from map
@@ -159,7 +159,7 @@ export default function SearchForm({
       <button
         type="submit"
         disabled={loading || disabled}
-        className="mt-1 rounded-md bg-route-accent text-route-bg font-medium py-2 text-sm disabled:opacity-50"
+        className="mt-1 rounded-md bg-route-accent border border-route-accent text-route-bg font-medium py-2 text-sm disabled:opacity-50"
       >
         {loading ? "Searching…" : "Find route"}
       </button>
@@ -168,7 +168,7 @@ export default function SearchForm({
         type="button"
         onClick={onClear}
         disabled={disabled || (!originName && !destinationName)}
-        className="rounded-md bg-route-bg border border-route-line text-neutral-300 hover:border-route-accent hover:text-white font-medium py-2 text-sm disabled:opacity-50 transition-colors cursor-pointer"
+        className="rounded-md bg-route-accent border border-route-accent text-route-bg font-medium py-2 text-sm disabled:opacity-50 transition-colors cursor-pointer"
       >
         Clear
       </button>

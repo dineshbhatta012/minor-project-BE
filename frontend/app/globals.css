@@ -7,9 +7,264 @@
 html,
 body {
   height: 100%;
-  background-color: #0f1418;
-  color: #e8ecef;
+  background-color: #ececeb;
+  color: #000000;
 }
+
+/* Light map-inspired surfaces: nested panels move from pale sage to misty
+   green so hierarchy remains visible without changing the layout. */
+.bg-route-panel {
+  background: linear-gradient(135deg, #ececeb 0%, #dededd 100%);
+  background-image:
+    linear-gradient(135deg, transparent 0 48%, rgba(209, 209, 232, 0.2) 48% 50%, transparent 50% 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 1.4rem,
+      rgba(94, 95, 126, 0.08) 1.4rem 1.48rem,
+      transparent 1.48rem 2.8rem
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 1.8rem,
+      rgba(184, 184, 183, 0.12) 1.8rem 1.88rem,
+      transparent 1.88rem 3.6rem
+    ),
+    linear-gradient(135deg, #ececeb 0%, #dededd 100%);
+  background-size: 100% 100%, 100% 5.6rem, 12rem 100%, 100% 100%;
+  border: 1px solid #c4c4c3;
+}
+
+header.bg-route-panel {
+  background: transparent;
+}
+
+.project-header {
+  position: relative;
+  background-color: rgba(232, 232, 231, 0.3);
+  background-image:
+    linear-gradient(90deg, transparent 0 24px, rgba(94, 95, 126, 0.12) 24px 27px, transparent 27px 58px),
+    linear-gradient(135deg, transparent 0 48%, rgba(209, 209, 232, 0.15) 48% 51%, transparent 51% 100%),
+    repeating-linear-gradient(0deg, transparent 0 12px, rgba(94, 95, 126, 0.03) 12px 14px, transparent 14px 24px);
+  background-size: 116px 100%, 100% 100%, 100% 36px;
+}
+
+.project-header::before,
+.project-header::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 0.45rem;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.project-header::before {
+  background: rgba(94, 95, 126, 0.12);
+}
+
+.project-header::after {
+  left: 19%;
+  right: 19%;
+  height: 0.08rem;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.75) 0 0.4rem,
+    transparent 0.4rem 0.8rem
+  );
+}
+
+.project-header > div {
+  z-index: 1;
+}
+
+.project-header h1 {
+  z-index: 2;
+}
+
+.project-nav {
+  position: relative;
+  padding: 0.45rem 1.25rem;
+  border: 1px solid #5e5f7e;
+  border-radius: 0.55rem;
+  color: #000000 !important;
+  background-color: transparent;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      rgba(94, 95, 126, 0.16) 18px 20px,
+      transparent 20px 42px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 8px,
+      rgba(184, 184, 183, 0.24) 8px 10px,
+      transparent 10px 18px
+    );
+  background-size: 84px 100%, 100% 28px;
+  box-shadow: none;
+}
+
+.project-nav::before,
+.project-nav::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.25rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.project-nav::before {
+  background: rgba(94, 95, 126, 0.16);
+}
+
+.project-nav::after {
+  left: 0.8rem;
+  right: 0.8rem;
+  bottom: 0.42rem;
+  height: 0.08rem;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.8) 0 0.35rem,
+    transparent 0.35rem 0.7rem
+  );
+}
+
+.project-nav > * {
+  position: relative;
+  z-index: 1;
+}
+
+.project-sidebar {
+  position: relative;
+  background-color: rgba(236, 236, 235, 0.94);
+  background-image:
+    radial-gradient(circle, rgba(94, 95, 126, 0.18) 0 100%, transparent 100%),
+    radial-gradient(circle, rgba(94, 95, 126, 0.14) 0 100%, transparent 100%),
+    radial-gradient(circle, rgba(94, 95, 126, 0.1) 0 100%, transparent 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 2.5rem,
+      rgba(94, 95, 126, 0.1) 2.5rem 2.62rem,
+      transparent 2.62rem 5rem
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 3.5rem,
+      rgba(184, 184, 183, 0.16) 3.5rem 3.62rem,
+      transparent 3.62rem 7rem
+    );
+  background-size: 2.25rem 2.25rem, 1.5rem 1.5rem, 0.9rem 0.9rem, 100% 10rem, 14rem 100%;
+  background-position: 1rem 5rem, 5rem 13rem, 2rem 22rem, 0 0, 0 0;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
+}
+
+.project-sidebar::before,
+.project-sidebar::after {
+  content: "";
+  position: absolute;
+  top: -12%;
+  left: 1.4rem;
+  width: 5rem;
+  height: 124%;
+  border-radius: 48% 52% 44% 56% / 32% 38% 62% 68%;
+  transform: rotate(7deg);
+  pointer-events: none;
+}
+
+.project-sidebar::before {
+  background: rgba(94, 95, 126, 0.12);
+}
+
+.project-sidebar::after {
+  left: 3.82rem;
+  width: 0.18rem;
+  border-radius: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.8) 0 0.5rem,
+    transparent 0.5rem 1rem
+  );
+}
+
+.project-sidebar > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+main button,
+main input,
+main select {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #c4c4c3;
+}
+
+main button {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 0.9rem,
+      rgba(255, 255, 255, 0.3) 0.9rem 0.96rem,
+      transparent 0.96rem 1.8rem
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 0.35rem,
+      rgba(255, 255, 255, 0.3) 0.35rem 0.43rem,
+      transparent 0.43rem 0.7rem
+    );
+  background-size: 3.6rem 100%, 100% 1.4rem;
+}
+
+main input,
+main select {
+  background-color: #ececeb;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 1.25rem,
+      rgba(94, 95, 126, 0.08) 1.25rem 1.33rem,
+      transparent 1.33rem 2.5rem
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 0.9rem,
+      rgba(184, 184, 183, 0.1) 0.9rem 0.98rem,
+      transparent 0.98rem 1.8rem
+    );
+  background-size: 10rem 100%, 100% 3.6rem;
+}
+
+main button.border-0 {
+  border: 1px solid #c4c4c3 !important;
+}
+
+/* Keep every UI state monochrome, including existing semantic utility
+   classes, while retaining their original layout and interaction behavior. */
+main [class*="text-"] {
+  color: #000000 !important;
+}
+
+main [class*="bg-amber"],
+main [class*="bg-red"],
+main [class*="bg-fuchsia"],
+main [class*="bg-pink"] {
+  background-color: #d6d6d5 !important;
+}
+
+main [class*="border-amber"],
+main [class*="border-red"] {
+  border-color: #b7b7b6 !important;
+}
+
 
 /* Leaflet's default marker icon paths break with bundlers; components/BusMap.tsx
    fixes this by pointing at CDN-hosted icon images directly. */

@@ -9,10 +9,10 @@ const config: Config = {
     extend: {
       colors: {
         route: {
-          bg: "#0F1418",
-          panel: "#161D23",
-          accent: "#3DDC97",
-          line: "#2A343B",
+          bg: "#ECECEB",
+          panel: "#E2E2E1",
+          accent: "#b8b8b7",
+          line: "#C4C4C3",
         },
       },
     },

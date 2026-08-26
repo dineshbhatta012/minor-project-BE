@@ -10,7 +10,7 @@ import { Place } from "@/lib/geocode";
 // Kathmandu Valley center, used as the default map view.
 const VALLEY_CENTER: [number, number] = [27.7041, 85.32];
 
-const LEG_COLORS = ["#059669", "#2563eb", "#dc2626", "#7c3aed"];
+const LEG_COLORS = ["#3f4058", "#9696b5", "#c49f3b", "#6f9670"];
 
 // Build a Leaflet divIcon that renders bus-icon.png clipped to a circle
 // with a coloured border ring to distinguish stop types.
@@ -33,8 +33,8 @@ function makeWaypointHandle(color: string, isExisting = false, isSelected = fals
   const size = isExisting ? (isSelected ? 16 : 14) : 10;
   const ring = isExisting ? 3 : 2;
   const outer = size + ring * 2;
-  const bg = isSelected ? "#ef4444" : color; // Red when selected for deletion
-  const borderCol = isSelected ? "#fee2e2" : "#fff";
+  const bg = isSelected ? "#777776" : color;
+  const borderCol = isSelected ? "#ECECEB" : "#fff";
   return L.divIcon({
     html: `<div style="width:${outer}px;height:${outer}px;border-radius:50%;background:${bg};border:${ring}px solid ${borderCol};box-shadow:0 1px 4px rgba(0,0,0,0.5);${isExisting && !isSelected ? 'cursor:grab;' : 'cursor:pointer;'}"></div>`,
     className: "",
@@ -44,19 +44,19 @@ function makeWaypointHandle(color: string, isExisting = false, isSelected = fals
 }
 
 // Pre-built bus icons for each stop role (different sizes & colours)
-const BUS_ICON_ORIGIN      = makeBusStopIcon(28, "#3DDC97");  // Green — origin
-const BUS_ICON_DESTINATION = makeBusStopIcon(28, "#F2A93B");  // Amber — destination
-const BUS_ICON_MAJOR       = makeBusStopIcon(22, "#5DA9E9");  // Blue — major / interchange
-const BUS_ICON_DEFAULT     = makeBusStopIcon(16, "#94a3b8");  // Slate — regular stop
-const BUS_ICON_NEAREST     = makeBusStopIcon(32, "#2563eb");  // Blue ring — nearest stop to your location
+const BUS_ICON_ORIGIN      = makeBusStopIcon(28, "#5E5E5D");
+const BUS_ICON_DESTINATION = makeBusStopIcon(28, "#777776");
+const BUS_ICON_MAJOR       = makeBusStopIcon(22, "#999998");
+const BUS_ICON_DEFAULT     = makeBusStopIcon(16, "#B8B8B7");
+const BUS_ICON_NEAREST     = makeBusStopIcon(32, "#5E5E5D");
 
-// Large violet-ringed bus icon for the stop currently being re-positioned by
+// Large neutral-ringed bus icon for the stop currently being re-positioned by
 // drag & drop while in "Edit bus stop" mode.
-const BUS_ICON_EDIT = makeBusStopIcon(32, "#a855f7");
+const BUS_ICON_EDIT = makeBusStopIcon(32, "#777776");
 
 const USER_LOCATION_ICON = L.divIcon({
   className: "",
-  html: `<div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 3px rgba(59,130,246,0.4);"></div>`,
+  html: `<div style="width:16px;height:16px;border-radius:50%;background:#777776;border:3px solid #fff;box-shadow:0 0 0 3px rgba(119,119,118,0.4);"></div>`,
   iconSize: [16, 16],
   iconAnchor: [8, 8],
 });
@@ -64,7 +64,7 @@ const USER_LOCATION_ICON = L.divIcon({
 const PLACE_PIN_ICON = L.divIcon({
   className: "",
   html: `<div style="position:relative;width:28px;height:34px;">
-    <div style="position:absolute;left:4px;top:0;width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#8b5cf6;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>
+    <div style="position:absolute;left:4px;top:0;width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#777776;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>
     <div style="position:absolute;left:9px;top:5px;width:10px;height:10px;border-radius:50%;background:#fff;"></div>
   </div>`,
   iconSize: [28, 34],
@@ -224,8 +224,8 @@ function WaypointContextMenu({ x, y, onDelete, onClose }: WaypointContextMenuPro
         top: y,
         left: x,
         zIndex: 9999,
-        background: "#1e293b",
-        border: "1px solid #334155",
+        background: "linear-gradient(135deg, #ECECEB 0%, #DEDEDD 100%)",
+        border: "1px solid #C4C4C3",
         borderRadius: 8,
         boxShadow: "0 4px 16px rgba(0,0,0,0.45)",
         minWidth: 160,
@@ -238,8 +238,8 @@ function WaypointContextMenu({ x, y, onDelete, onClose }: WaypointContextMenuPro
         style={{
           padding: "6px 10px",
           fontSize: 11,
-          color: "#94a3b8",
-          borderBottom: "1px solid #334155",
+          color: "#000000",
+          borderBottom: "1px solid #C4C4C3",
           letterSpacing: "0.05em",
           textTransform: "uppercase",
         }}
@@ -255,12 +255,12 @@ function WaypointContextMenu({ x, y, onDelete, onClose }: WaypointContextMenuPro
           padding: "9px 14px",
           background: "transparent",
           border: "none",
-          color: "#f87171",
+          color: "#000000",
           fontSize: 13,
           cursor: "pointer",
           textAlign: "left",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#7f1d1d33")}
+        onMouseEnter={(e) => (e.currentTarget.style.background = "#C4C4C355")}
         onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         onClick={() => { onDelete(); onClose(); }}
       >
@@ -534,7 +534,7 @@ export default function BusMap({
       {walkPath && walkPath.length >= 2 && (
         <Polyline
           positions={walkPath}
-          pathOptions={{ color: "#64748b", weight: 3, dashArray: "2 6", opacity: 0.9 }}
+          pathOptions={{ color: "#3f4058", weight: 3, dashArray: "2 6", opacity: 0.9 }}
         />
       )}
 
@@ -595,13 +595,13 @@ export default function BusMap({
             {/* Outline Polyline to make the route easily recognized */}
             <Polyline
               positions={leg.path}
-              pathOptions={{ color: isWalk ? "#64748b" : "#0f172a", weight: isWalk ? 0 : 12, opacity: 0.45 }}
+              pathOptions={{ color: "#3f4058", weight: isWalk ? 0 : 12, opacity: 0.45 }}
             />
             {/* Main colored Polyline following actual road geometry */}
             <Polyline
               positions={leg.path}
               pathOptions={{ 
-                color: isWalk ? "#64748b" : color, 
+                color: isWalk ? "#3f4058" : color, 
                 weight: isWalk ? 5 : 7,
                 dashArray: isWalk ? "5 10" : undefined 
               }}
