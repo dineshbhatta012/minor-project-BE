@@ -1105,7 +1105,11 @@ R3218289,S0185,9,Thapathali
 R3218289,S0063,10,Kupondole stop
 R3218289,S0116,11,Damkal
 R3218289,S0103,12,Jawlakhel Stop
-R3218289,S0214,13,Ekantakuna
+R3218289,S_423,13,Ekantakuna north
+R3218289,S0258,14,Nakkhu (bus stop)
+R3218289,S0247,15,Bhaisepati
+R3218289,S0179,16,Khokana
+R3218289,S0242,17,Bungamati
 R3229256,S0135,1,Jorpati
 R3229256,S0026,2,Boudha
 R3229256,S0195,3,Chabahil चाबाहील
@@ -1253,12 +1257,147 @@ R3351750,S0083,5,Gyaneshwor Chowk
 R3351750,S0338,6,Kamalpokhari
 R3351750,S0339,7,Hattisar
 R3351750,S0013,8,Ratna Park
-R3351751,S0125,1,Attarkhel
-R3351751,S0207,2,ASCOL Stop
-R3351751,S0177,3,Balaju Chowk Bus Stop
-R3351751,S0207,4,ASCOL Stop
+R3351751,S_418,1,balkhu stop east
+R3351751,S_414,2,saanepa height east
+R3351751,S_410,3,ekantakuna east
+R3351751,S0011,4,Satdobato Chowk Stop
+R3351751,S_421,5,gwarko ring road
+R3351751,S_404,6,koteshwor west stop
+R3351751,S0017,7,Tinkune Stop
+R3351751,S0053,8,Gairigaun Stop
+R3351751,S0139,9,Sinamangal/Ring Road Stop सिनामंगल
+R3351751,S0070,10,Airport Bus Station
+R3351751,S0347,11,Tilganga
+R3351751,S0204,12,Gaushala Chowk Stop
+R3351751,S0350,13,Jayabageshwori
+R3351751,S0195,14,Chabahil चाबाहील
+R3351751,S0134,15,Gopi Krishna Stop
+R3351751,S0355,16,Gopikrishna
+R3351751,S0217,17,Sukedhara Stop
+R3351751,S0118,18,Dhumbarahi
+R3351751,S0354,19,Chappal Karkhana
+R3351751,S0044,20,Narayan Gopal Chowk
+R3351751,S0065,21,Basundhara
+R3351751,S0169,22,Gongabu Chowk
+R3351751,S0187,23,Samakhusi Stop
+R3351751,S0174,24,Naya Bus Park
+R3351751,S0349,25,Macchapokhari
+R3351751,S0177,26,Balaju Chowk Bus Stop
+R3351751,S0212,27,Banasthali
+R3351751,S0228,28,Dhungedhara
+R3351751,S0353,29,Sano Bharyang
+R3351751,S0162,30,Thulo Bharang Stop
+R3351751,S0211,31,Swayambhu Parikarma
+R3351751,S0090,32,Sitapaila Stop
+R3351751,S0246,33,Bafal
+R3351751,S_395,34,KALANKI
+R3351751,S0345,35,Khasi Bazaar
+R3351751,S_418,36,balkhu stop east
 R3351752,S0183,1,Dhulikhel Stop
-R3351753,S0247,1,Bhaisepati
+R3351752,S0001,2,KU Bus Stand (26 Kilo)
+R3351752,S0136,3,Banepa
+R3351752,S0121,4,Banepa Tindobato
+R3351752,S0153,5,Poolbazar Bus Stop (Pulbazar)
+R3351752,S0160,6,Bansdol
+R3351752,S0117,7,Sanga
+R3351752,S0190,8,Jagati
+R3351752,S0178,9,Adarsha
+R3351752,S_408,10,suryabinayak south
+R3351752,S_407,11,chundevi south
+R3351752,S_398,12,sallaghari
+R3351752,S0098,13,Tinkune Bhaktapur
+R3351752,S_409,14,srijananagar bhaktapur
+R3351752,S_412,15,radhe radhe south
+R3351752,S_413,16,madhyapur hospital(thimi)
+R3351752,S_422,17,chardobato south
+R3351752,S0325,18,Gatthaghar
+R3351752,S0326,19,Kausaltar
+R3351752,S0312,20,Lokanthali South
+R3351752,S_403,21,jadibuti west
+R3351752,S_404,22,koteshwor west stop
+R3351752,S0203,23,Tinkune Subidhanagar
+R3351752,S_405,24,civil hospital stop
+R3351752,S0304,25,Naya Baneshwor Chowk
+R3351752,S0062,26,Babarmahal Stop East
+R3351752,S0034,27,Buddhanagar Stop
+R3351752,S0097,28,Maitighar
+R3351752,S0066,29,Bhrikuti Mandap Stop
+R3351752,S0031,30,Bagbazar Stop
+R3351752,S0198,31,Ratnapark(purano bus park)
+R3351753,S0242,1,Bungamati
+R3351753,S0179,2,Khokana
+R3351753,S0247,3,Bhaisepati
+R3351753,S0258,4,Nakkhu (bus stop)
+R3351753,S_423,5,Ekantakuna north
+R3351753,S_424,6,jawlakhel west
+R3351753,S_425,7,pulchowk west
+R3351753,S0237,8,Harihar Bhawan
+R3351753,S_426,9,Nabil bank west stop
+R3351753,S0328,10,Jwagal Chowk
+R3351753,S0063,11,Kupondole stop
+R3351753,S_411,12,Thapathali College
+R3351753,S0097,13,Maitighar
+R3351753,S0099,14,Babarmahal Stop West
+R3351753,S_406,15,bizulibazar pul
+R3351753,S0069,16,Naya Baneshwor Tampoo Station
+R3351753,S0029,17,Minbhawan
+R3351753,S0127,18,Shantinagar Stop
+R3351753,S0017,19,Tinkune Stop
+R3351753,S0053,20,Gairigaun Stop
+R3351753,S0139,21,Sinamangal/Ring Road Stop सिनामंगल
+R3351753,S0070,22,Airport Bus Station
+R3351753,S0347,23,Tilganga
+R3351753,S0204,24,Gaushala Chowk Stop
+R3351753,S0052,25,JayaBageshwari Stop
+R3351753,S0195,26,Chabahil चाबाहील
+R3351753,S0172,27,Hyatt Regency
+R3351753,S0026,28,Boudha
+R3351753,S0135,29,Jorpati
+R3351754,S0152,1,Jamal
+R3351754,S0166,2,Kantipath
+R3351754,S0137,3,Ghantaghar (घण्टाघर) stop
+R3351754,S0198,4,Ratnapark(purano bus park)
+R3351754,S0086,5,Tourism Board Stop
+R3351754,S_394,6,bhadrakali
+R3351754,S0036,7,Singha Durbar West Stop
+R3351754,S0132,8,Maitighar Stop--South
+R3351754,S0185,9,Thapathali
+R3351754,S0063,10,Kupondole stop
+R3351754,S0168,11,Jwagal
+R3351754,S0283,12,Nabil Bank
+R3351754,S0284,13,Harihar Bhawan/ Krishna galli
+R3351754,S0234,14,Pulchowk
+R3351754,S0116,15,Damkal
+R3351754,S0103,16,Jawlakhel Stop
+R3351754,S0213,17,Kumaripati
+R3351754,S0155,18,Patan Hospital
+R3351754,S0219,19,Lagankhel
+R3351754,S0194,20,Batuk Bhairav
+R3351754,S0223,21,Lalitpur Industrial Estate
+R3351754,S_420,22,satdobato
+R3351754,S0011,23,Satdobato Chowk Stop
+R3351754,S0248,24,Chapagaun Dobato
+R3351754,S0352,25,Mahalaxmisthan
+R3351754,S0214,26,Ekantakuna
+R3351754,S0106,27,Nakhu Stop
+R3351754,S0247,28,Bhaisepati
+R3351754,S0179,29,Khokana
+R3351754,S0242,30,Bungamati
+R3351755,S0144,1,Shivapuri Park Stop
+R3351755,S0176,2,Budhanilkantha Stop
+R3351755,S0038,3,Deuba Chowk stop
+R3351755,S0231,4,Golfutar stop
+R3351755,S0158,5,Bansbari stop
+R3351755,S0044,6,Narayan Gopal Chowk
+R3351755,S0030,7,Chakrapath Stop-- South
+R3351755,S0124,8,Teaching Hospital stop
+R3351755,S0082,9,Panipokhari stop
+R3351755,S0149,10,Lazimpat stop
+R3351755,S_391,11,lainchaur chowk
+R3351755,S0152,12,Jamal
+R3351755,S0166,13,Kantipath
+R3351755,S0137,14,Ghantaghar (घण्टाघर) stop
+R3351755,S0198,15,Ratnapark(purano bus park)
 R-NY-03,S0372,1,Pepsicola
 R-NY-03,S_403,2,jadibuti west
 R-NY-03,S_404,3,koteshwor west stop
